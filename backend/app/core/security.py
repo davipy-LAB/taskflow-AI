@@ -1,4 +1,8 @@
 from passlib.context import CryptContext
+import jwt
+from datetime import datetime, timedelta, timezone
+from typing import Any
+from app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 #Essa função cria um contexto de criptografia usando o algoritmo bcrypt.
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
@@ -26,3 +30,22 @@ def validate_password_change(old_pass: str, new_pass: str, hashed_pass: str) -> 
     if not is_password_strong(new_pass):
         return False
     return True
+
+# Função para criar um token JWT
+
+def create_access_token(
+    subject: str | Any, expires_delta: timedelta = None
+) -> str:
+    """Cria um token de acesso JWT com tempo de expiração."""
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        # Usa o valor padrão do config.py (30 minutos)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    
+    # O "sub" (subject) é o identificador do usuário (ex: id ou email)
+    to_encode = {"exp": expire, "sub": str(subject)}
+    
+    # Codifica o token usando o SECRET_KEY e ALGORITHM do config.py
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
