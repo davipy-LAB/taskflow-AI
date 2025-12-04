@@ -2,6 +2,7 @@ from passlib.context import CryptContext
 import jwt
 from datetime import datetime, timedelta, timezone
 from typing import Any
+from app.models.token import TokenPayload
 from app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 #Essa função cria um contexto de criptografia usando o algoritmo bcrypt.
@@ -49,3 +50,22 @@ def create_access_token(
     # Codifica o token usando o SECRET_KEY e ALGORITHM do config.py
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def decode_access_token(token: str) -> TokenPayload:
+    """Decodifica o token JWT e retorna o payload."""
+    try:
+        # Tenta decodificar o token
+        payload = jwt.decode(
+            token, SECRET_KEY, algorithms=[ALGORITHM]
+        )
+        # O sub (subject) é o email do usuário
+        sub: str = payload.get("sub")
+        if sub is None:
+            raise jwt.PyJWTError("Token sem subject (sub) válido.")
+        
+        # Retorna o payload decodificado
+        return TokenPayload(sub=sub)
+    
+    except jwt.PyJWTError:
+        # Captura qualquer erro de JWT (expirado, inválido, malformado)
+        return None

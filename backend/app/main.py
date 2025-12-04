@@ -1,6 +1,7 @@
 # Conteúdo de backend/app/main.py
 from fastapi import FastAPI
 import app.api.auth as auth
+import app.api.users as users
 from app.db.session import create_db_and_tables
 
 app = FastAPI(title="TaskFlow AI Backend")
@@ -15,4 +16,5 @@ app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
 def read_root():
     return {"Hello": "TaskFlow AI API is running!"}
 
-# IMPORTANTE: No mundo real, você usaria subpastas para routers, models, etc.
+app.include_router(auth.router, prefix="/api/v1/auth")
+app.include_router(users.router, prefix="/api/v1/users")

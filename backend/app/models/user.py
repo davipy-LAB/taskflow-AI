@@ -1,41 +1,52 @@
+# backend/app/models/user.py
+
 from datetime import datetime
-from typing import List, Optional
-
-from sqlmodel import Field, Relationship, SQLModel
+from typing import Optional
+from sqlmodel import SQLModel, Field
 
 # ----------------------------------------------------------------------
-# Modelo de Associação (Pivot Table)
+# 1. Base (Campos Comuns)
 # ----------------------------------------------------------------------
-class Membership(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="user.id", index=True)
-    organization_id: int = Field(foreign_key="organization.id", index=True)
-    
-    role: str = Field(default="Member") 
-    
-    user: "User" = Relationship(back_populates="memberships")
-    organization: "Organization" = Relationship(back_populates="memberships")
 
-
-# Aqui é criado o modelo de Usuário (User)
-# ----------------------------------------------------------------------
-class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    email: str = Field(unique=True, index=True)
-    
-    hashed_password: str
-    is_active: bool = Field(default=True)
-    
-    memberships: List[Membership] = Relationship(back_populates="user")
-    
+# SQLModel base para todos os campos
+class UserBase(SQLModel):
+    """
+    Campos comuns a todas as formas de usuário.
+    Não inclui ID ou senha com hash.
+    """
+    email: str = Field(index=True, unique=True, nullable=False)
     full_name: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    is_active: bool = Field(default=True)
 
 # ----------------------------------------------------------------------
-# Modelo de Organização (Organization)
+# 2. Criação (Recebido no POST /register)
 # ----------------------------------------------------------------------
-class Organization(SQLModel, table=True):
+
+# Herda do Base e adiciona o campo 'password' (apenas para recebimento)
+class UserCreate(UserBase):
+    """Modelo usado para criar um novo usuário (POST /register)."""
+    password: str # Campo de senha em texto simples para hashing
+
+# ----------------------------------------------------------------------
+# 3. Tabela de Banco de Dados
+# ----------------------------------------------------------------------
+
+# Modelo da tabela (inclui ID e a senha HASHED)
+class User(UserBase, table=True):
+    """Modelo da tabela no banco de dados."""
     id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(unique=True, index=True)
-    
-    memberships: List[Membership] = Relationship(back_populates="organization")
+    # A senha é salva com hash (nunca use o nome 'password' para a coluna com hash)
+    hashed_password: str = Field(nullable=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+
+# ----------------------------------------------------------------------
+# 4. Leitura (Retorno da API)
+# ----------------------------------------------------------------------
+
+# Herda do Base e adiciona o ID (NÃO inclui a senha com hash!)
+class UserRead(UserBase):
+    """Modelo usado para retornar dados do usuário (GET /me, GET /register)."""
+    id: int
+    created_at: datetime
+    # Note que NÃO incluímos 'hashed_password' aqui!
