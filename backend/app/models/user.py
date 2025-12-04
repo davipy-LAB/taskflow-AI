@@ -1,19 +1,17 @@
-# backend/app/models/user.py
-
 from datetime import datetime
-from typing import Optional
-from sqlmodel import SQLModel, Field
+from typing import Optional, List
+from sqlmodel import SQLModel, Field, Relationship
+from sqlalchemy.orm import Relationship as SARelationship
+
+# Importar APÓS definir User
+from .language import UserLanguage
 
 # ----------------------------------------------------------------------
 # 1. Base (Campos Comuns)
 # ----------------------------------------------------------------------
 
-# SQLModel base para todos os campos
 class UserBase(SQLModel):
-    """
-    Campos comuns a todas as formas de usuário.
-    Não inclui ID ou senha com hash.
-    """
+    """Campos comuns a todas as formas de usuário."""
     email: str = Field(index=True, unique=True, nullable=False)
     full_name: Optional[str] = None
     is_active: bool = Field(default=True)
@@ -22,31 +20,33 @@ class UserBase(SQLModel):
 # 2. Criação (Recebido no POST /register)
 # ----------------------------------------------------------------------
 
-# Herda do Base e adiciona o campo 'password' (apenas para recebimento)
 class UserCreate(UserBase):
-    """Modelo usado para criar um novo usuário (POST /register)."""
-    password: str # Campo de senha em texto simples para hashing
+    """Modelo usado para criar um novo usuário."""
+    password: str
 
 # ----------------------------------------------------------------------
 # 3. Tabela de Banco de Dados
 # ----------------------------------------------------------------------
 
-# Modelo da tabela (inclui ID e a senha HASHED)
 class User(UserBase, table=True):
     """Modelo da tabela no banco de dados."""
     id: Optional[int] = Field(default=None, primary_key=True)
-    # A senha é salva com hash (nunca use o nome 'password' para a coluna com hash)
     hashed_password: str = Field(nullable=False)
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
-
+    
+    # Relacionamento para os idiomas que o usuário está aprendendo
+    languages_link: List["UserLanguage"] = Relationship(back_populates="user")
 
 # ----------------------------------------------------------------------
 # 4. Leitura (Retorno da API)
 # ----------------------------------------------------------------------
 
-# Herda do Base e adiciona o ID (NÃO inclui a senha com hash!)
 class UserRead(UserBase):
-    """Modelo usado para retornar dados do usuário (GET /me, GET /register)."""
+    """Modelo usado para retornar dados do usuário."""
     id: int
     created_at: datetime
-    # Note que NÃO incluímos 'hashed_password' aqui!
+
+class UserPasswordChange(SQLModel):
+    """Modelo usado para receber a requisição de troca de senha."""
+    old_password: str
+    new_password: str

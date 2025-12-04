@@ -1,5 +1,9 @@
 # backend/app/api/user.py
-
+from fastapi import Depends, HTTPException, status
+from sqlmodel import Session
+from app.db.session import get_session
+from app.core.security import get_password_hash, verify_password
+from app.schemas.user_schema import UserPasswordChange
 from fastapi import APIRouter
 from app.api.deps import CurrentUser
 from app.models.user import UserRead # Assumindo que você tem um modelo UserRead para retorno
@@ -14,3 +18,40 @@ def read_current_user(current_user: CurrentUser):
     Requer um Token JWT válido.
     """
     return current_user
+
+@router.patch("/password", tags=["users"])
+def change_password(
+    password_data: UserPasswordChange,
+    current_user: CurrentUser, # Garante que o usuário esteja logado
+    session: Session = Depends(get_session),
+):
+    """
+    Permite ao usuário logado mudar sua senha.
+    Requer o token JWT.
+    """
+    
+    # 1. Verificar a senha antiga
+    if not verify_password(password_data.old_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A senha antiga fornecida está incorreta.",
+        )
+
+    # 2. Impedir que a senha nova seja igual à antiga (boa prática)
+    if password_data.old_password == password_data.new_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A nova senha não pode ser igual à senha antiga.",
+        )
+        
+    # 3. Gerar o hash da nova senha
+    new_hashed_password = get_password_hash(password_data.new_password)
+    
+    # 4. Atualizar o usuário no banco de dados
+    current_user.hashed_password = new_hashed_password
+    
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    
+    return {"message": "Senha atualizada com sucesso."}
