@@ -6,8 +6,18 @@ from datetime import datetime
 class User(SQLModel):
     pass
 
-class Language(SQLModel):
-    pass
+# ----------------------------------------------------------------------
+# Modelo de Idioma (o "Curso")
+# ----------------------------------------------------------------------
+
+class LanguageBase(SQLModel):
+    name: str
+    code: str
+
+class Language(LanguageBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    learners_link: List["UserLanguage"] = Relationship(back_populates="language")
+    lessons: List["Lesson"] = Relationship(back_populates="language")
 
 # ----------------------------------------------------------------------
 # Tabela Intermediária: Rastreamento do Progresso do Usuário
@@ -20,31 +30,34 @@ class UserLanguage(SQLModel, table=True):
     """
     user_id: Optional[int] = Field(default=None, primary_key=True, foreign_key="user.id")
     language_id: Optional[int] = Field(default=None, primary_key=True, foreign_key="language.id")
-    
-    # Adicione campos de progresso aqui
     progress_percentage: float = Field(default=0.0)
     last_access: datetime = Field(default_factory=datetime.utcnow)
 
-    # Relacionamentos
     user: "User" = Relationship(back_populates="languages_link")
     language: "Language" = Relationship(back_populates="learners_link")
 
-
 # ----------------------------------------------------------------------
-# Modelo de Idioma (o "Curso")
+# Modelo de Lição
 # ----------------------------------------------------------------------
 
-class LanguageBase(SQLModel):
-    name: str
-    code: str
+class LessonBase(SQLModel):
+    title: str = Field(index=True, nullable=False)
+    content: str
+    order: int = Field(index=True)
+    language_id: int = Field(foreign_key="language.id", nullable=False)
 
-class Language(LanguageBase, table=True):
+class Lesson(LessonBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    learners_link: List["UserLanguage"] = Relationship(back_populates="language")
+    language: "Language" = Relationship(back_populates="lessons")
 
+class LessonRead(LessonBase):
+    id: int
+
+    class Config:
+        from_attributes = True
 
 # ----------------------------------------------------------------------
-# Modelos de Leitura (Retorno da API) - SEM Relacionamentos
+# Modelos de Leitura (Retorno da API)
 # ----------------------------------------------------------------------
 
 class LanguageRead(LanguageBase):
@@ -54,7 +67,6 @@ class LanguageRead(LanguageBase):
         from_attributes = True
 
 class UserLanguageRead(SQLModel):
-    """Schema para leitura - SEM herança de table=True"""
     user_id: int
     language_id: int
     progress_percentage: float

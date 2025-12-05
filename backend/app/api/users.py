@@ -6,7 +6,12 @@ from app.core.security import get_password_hash, verify_password
 from app.schemas.user_schema import UserPasswordChange
 from fastapi import APIRouter
 from app.api.deps import CurrentUser
-from app.models.user import UserRead # Assumindo que você tem um modelo UserRead para retorno
+from app.models.user import UserRead 
+from app.models.language import Language
+from app.models.language import UserLanguage, UserLanguageRead
+from sqlmodel import select
+
+# Assumindo que você tem um modelo UserRead para retorno
 
 router = APIRouter()
 
@@ -55,3 +60,50 @@ def change_password(
     session.refresh(current_user)
     
     return {"message": "Senha atualizada com sucesso."}
+
+@router.post("/me/enroll/{language_id}", response_model=UserLanguageRead, tags=["users"])
+
+def enroll_in_language(
+    language_id: int,
+    current_user: CurrentUser, # Usuário logado
+    session: Session = Depends(get_session),
+):
+    """
+    Permite ao usuário logado se matricular em um idioma específico.
+    Requer o Token JWT.
+    """
+    
+    # 1. Verificar se o idioma existe
+    language = session.get(Language, language_id)
+    if not language:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Idioma com ID {language_id} não encontrado."
+        )
+
+    # 2. Verificar se o usuário já está matriculado
+    enrollment = session.exec(
+        select(UserLanguage).where(
+            UserLanguage.user_id == current_user.id,
+            UserLanguage.language_id == language_id
+        )
+    ).first()
+    
+    if enrollment:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Você já está matriculado em {language.name}."
+        )
+        
+    # 3. Criar a nova matrícula (registro na tabela de ligação)
+    new_enrollment = UserLanguage(
+        user_id=current_user.id,
+        language_id=language_id,
+        progress_percentage=0.0 # Começa com 0%
+    )
+    
+    session.add(new_enrollment)
+    session.commit()
+    session.refresh(new_enrollment)
+    
+    return new_enrollment
