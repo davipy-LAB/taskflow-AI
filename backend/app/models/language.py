@@ -74,3 +74,9 @@ class UserLanguageRead(SQLModel):
 
     class Config:
         from_attributes = True
+
+class LessonUpdate(SQLModel):
+    """Modelo usado para atualizar parcialmente uma lição."""
+    title: Optional[str] = None
+    content: Optional[str] = None
+    order: Optional[int] = None

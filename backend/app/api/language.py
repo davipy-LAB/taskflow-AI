@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from app.db.session import get_session
-from app.models.language import Language, LanguageRead, LessonRead, LessonBase, Lesson, LanguageBase
+from app.models.language import Language, LanguageRead, LessonRead, LessonBase, Lesson, LanguageBase, LessonUpdate
 
 router = APIRouter(tags=["languages"], prefix="/languages")
 
@@ -78,3 +78,61 @@ def create_lesson_for_language(
     session.refresh(db_lesson)
     
     return db_lesson
+
+@router.get("/{language_id}/lessons/{lesson_id}", response_model=LessonRead)
+def read_lesson(
+    language_id: int,
+    lesson_id: int,
+    session: Session = Depends(get_session)
+):
+    """
+    Busca o conteúdo completo de uma lição específica.
+    """
+    # 1. Buscar a lição pelo ID e language_id
+    lesson = session.exec(
+        select(Lesson).where(
+            Lesson.id == lesson_id, 
+            Lesson.language_id == language_id
+        )
+    ).first() # Usa .first() para obter o objeto ou None
+
+    if not lesson:
+        # Lança a exceção se não encontrar a lição OU se a lição pertencer a outro idioma
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail=f"Lição com ID {lesson_id} não encontrada para o idioma {language_id}."
+        )
+    
+    # Se a lição for encontrada, ela será retornada, satisfazendo o ResponseModel
+    return lesson
+
+@router.patch("/{language_id}/lessons/{lesson_id}", response_model=LessonRead)
+def update_lesson(
+    language_id: int,
+    lesson_id: int,
+    lesson_update: LessonUpdate, # Recebe os dados opcionais
+    session: Session = Depends(get_session)
+):
+    """
+    Edita uma lição existente, permitindo a atualização parcial (PATCH).
+    """
+    lesson = session.get(Lesson, lesson_id)
+    if not lesson or lesson.language_id != language_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Lição não encontrada ou não pertence ao idioma especificado."
+        )
+
+    # 1. Converte o modelo de atualização para dicionário, IGNORANDO CAMPOS VAZIOS
+    update_data = lesson_update.model_dump(exclude_unset=True) 
+
+    # 2. Aplica os dados de atualização na instância do banco de dados
+    for key, value in update_data.items():
+        setattr(lesson, key, value)
+    # -------------------------
+    
+    session.add(lesson)
+    session.commit()
+    session.refresh(lesson)
+    
+    return lesson
