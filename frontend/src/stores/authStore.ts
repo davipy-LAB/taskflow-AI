@@ -1,171 +1,132 @@
 // src/stores/authStore.ts
 
 import { create } from 'zustand';
-import api from '../services/api'; 
-import { User, UserRegister, Token } from '../types/auth'; // Tipos de auth.ts
+import api from '@/api/api'; // Seu cliente API configurado
+import { jwtDecode } from 'jwt-decode';
 
-// 1. Define o estado do Store (O que ele armazena)
+interface UserData {
+  id: number;
+  email: string;
+}
+
 interface AuthState {
-  user: User | null;
+  token: string | null;
+  user: UserData | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-}
-
-// 2. Define as ações do Store (O que ele pode fazer)
-interface AuthActions {
-  // Ações de Autenticação
+  // Ações
   login: (email: string, password: string) => Promise<boolean>;
-  register: (userIn: UserRegister) => Promise<boolean>;
   logout: () => void;
-  // Ação de inicialização para verificar o token ao carregar a página
-  initializeAuth: () => void;
-  
-  // Ações para o Front-end
   clearError: () => void;
+  initializeAuth: () => void;
+  register: (data: any) => Promise<boolean>;
 }
 
-// Tipo combinado
-type AuthStore = AuthState & AuthActions;
+const decodeToken = (token: string): UserData => {
+  try {
+    const decoded: any = jwtDecode(token);
+    return { id: decoded.sub, email: decoded.email }; 
+  } catch (e) {
+    throw new Error("Token inválido.");
+  }
+};
 
-// URL do Backend (Para usar no login)
-const LOGIN_URL = '/auth/login';
-const REGISTER_URL = '/auth/register';
-
-/**
- * Função utilitária para buscar o usuário usando o token atual.
- * NOTE: Você precisará de uma rota GET /users/me no seu backend para isso.
- * Por enquanto, vamos retornar os dados do usuário após o login/registro.
- */
-const fetchUserData = async (): Promise<User> => {
-    // Rota GET /users/me não foi criada, mas é a prática ideal.
-    // Vamos MOCKAR a obtenção do usuário se o token estiver em api.ts
-    const response = await api.get('/users/me'); // Rota a ser criada no backend!
-    return response.data;
-}
+// 🚨 NOVA FUNÇÃO: Converte o objeto de erro (Pydantic) em uma string legível.
+const formatError = (errorDetail: any): string => {
+    if (Array.isArray(errorDetail)) {
+        // Formato Pydantic: [{loc: [..., 'field_name'], msg: 'message'}, ...]
+        return errorDetail.map((err) => {
+            // Tenta obter o nome do campo (o último elemento do array 'loc')
+            const field = err.loc && err.loc.length > 1 ? err.loc[err.loc.length - 1] : 'Erro Geral';
+            return `${field}: ${err.msg}`;
+        }).join(' | ');
+    }
+    // Retorna a mensagem de erro simples, se for uma string, ou um erro genérico
+    return typeof errorDetail === 'string' ? errorDetail : 'Erro desconhecido. Tente novamente.';
+};
 
 
-// Cria o store Zustand
-export const useAuthStore = create<AuthStore>((set, get) => ({
-  // ESTADO INICIAL
+export const useAuthStore = create<AuthState>((set, get) => ({
+  token: null,
   user: null,
   isAuthenticated: false,
-  isLoading: true, // Começa como true para verificar o token
+  isLoading: false,
   error: null,
 
-  // AÇÕES
-  clearError: () => set({ error: null }),
-  
-  // ----------------------------------------------------
-  // AÇÃO: INICIALIZAÇÃO (Checa LocalStorage)
-  // ----------------------------------------------------
   initializeAuth: () => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        // Se há token, define o header de Auth no Axios
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
-        // **PRÁTICA IDEAL**: Chamar /users/me para validar o token e obter dados
-        // Por enquanto, vamos apenas marcar como autenticado se o token existir
-        
-        // set(async (state) => {
-        //     try {
-        //         const user = await fetchUserData(); // Chama a rota /users/me
-        //         return { user, isAuthenticated: true, isLoading: false };
-        //     } catch (e) {
-        //         get().logout(); // Se falhar, desloga
-        //         return { isLoading: false };
-        //     }
-        // });
-        
-        // MOCK SIMPLIFICADO: Apenas marca como autenticado se o token existir
-        set({ isAuthenticated: true, isLoading: false });
-
-      } else {
-        set({ isLoading: false });
+    if (typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem('token');
+      if (storedToken) {
+        try {
+            const user = decodeToken(storedToken);
+            set({ token: storedToken, user, isAuthenticated: true });
+        } catch (e) {
+            localStorage.removeItem('token');
+        }
       }
-    } catch (e) {
-        // Erro ao acessar localStorage
-        set({ isLoading: false });
     }
   },
 
-  // ----------------------------------------------------
-  // AÇÃO: REGISTRO
-  // ----------------------------------------------------
-  register: async (userIn) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await api.post<User>(REGISTER_URL, userIn); // Retorna UserRead
-      set({ isLoading: false, error: null });
-      alert(`Conta criada para ${response.data.email}! Por favor, faça o login.`);
-      return true;
-    } catch (e: any) {
-      const errorMessage = e.response?.data?.detail || 'Falha ao registrar.';
-      set({ isLoading: false, error: errorMessage });
-      return false;
-    }
-  },
-
-  // ----------------------------------------------------
-  // AÇÃO: LOGIN
-  // ----------------------------------------------------
   login: async (email, password) => {
     set({ isLoading: true, error: null });
     try {
-      // 1. O FastAPI espera form-data para /login, não JSON. 
-      // O Axios tem que simular o envio de formulário:
-      const formData = new URLSearchParams();
-      formData.append('username', email); // FASTAPI usa 'username' para o email
-      formData.append('password', password);
       
-      const response = await api.post<Token>(
-        LOGIN_URL, 
-        formData, 
-        {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-        }
-      );
+      // 🚨 CORREÇÃO: CRIA URLSearchParams (Form Data)
+      const data = new URLSearchParams();
+      data.append('username', email); // Envia o email na chave 'username'
+      data.append('password', password);
+      
+      // Envia o Form Data e o Content-Type: application/x-www-form-urlencoded
+      const response = await api.post(
+        '/auth/login', 
+        data, 
+        // Headers são opcionais aqui, mas garantem que o Content-Type correto é enviado
+        { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } } 
+      ); 
       
       const { access_token } = response.data;
-
-      // 2. Salva o token no localStorage e no Axios
-      localStorage.setItem('accessToken', access_token);
-      api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
       
-      // 3. Obtém o usuário (Poderia vir direto do /login, mas você optou pelo Token)
-      // Vamos obter os dados do usuário logo após o login para preencher o store
-      const user = await fetchUserData(); // Chama a rota /users/me (Assumindo que está criada)
+      // ... (Restante da lógica de armazenamento e estado do token, que está correta)
+      localStorage.setItem('token', access_token);
+      const user = decodeToken(access_token);
       
       set({ 
-          user: user, 
-          isAuthenticated: true, 
-          isLoading: false, 
-          error: null 
+        token: access_token, 
+        user,
+        isAuthenticated: true,
+        isLoading: false 
       });
-
       return true;
 
-    } catch (e: any) {
-      // Erros 401 do backend vêm com a mensagem em 'detail'
-      const errorMessage = e.response?.data?.detail || 'Erro desconhecido no login.';
-      set({ isLoading: false, error: errorMessage });
+    } catch (err: any) {
+      const detail = err.response?.data?.detail;
+      const errorMessage = detail ? formatError(detail) : 'Erro de conexão ou credenciais.';
+      set({ error: errorMessage, isLoading: false });
       return false;
     }
   },
+  register: async (data) => {
+    set({ isLoading: true, error: null });
+    try {
+        await api.post('/auth/register', data);
+        set({ isLoading: false });
+        return true;
+    } catch (err: any) {
+        const detail = err.response?.data?.detail;
+        // 🚨 Usa a nova função de formatação
+        const errorMessage = detail ? formatError(detail) : 'Falha ao registrar.';
+        set({ error: errorMessage, isLoading: false });
+        return false;
+    }
+  },
 
-  // ----------------------------------------------------
-  // AÇÃO: LOGOUT
-  // ----------------------------------------------------
   logout: () => {
-    localStorage.removeItem('accessToken');
-    delete api.defaults.headers.common['Authorization']; // Remove o token do Axios
-    set({ 
-        user: null, 
-        isAuthenticated: false, 
-        isLoading: false,
-        error: null
-    });
+    localStorage.removeItem('token');
+    set({ token: null, user: null, isAuthenticated: false });
+  },
+
+  clearError: () => {
+    set({ error: null });
   },
 }));
