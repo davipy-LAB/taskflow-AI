@@ -10,6 +10,7 @@ from app.models.user import User # Modelo de DB
 from app.core.security import get_password_hash, create_access_token, verify_password
 from app.db.session import get_session # Sessão de DB
 from app.models.token import Token
+from app.api.deps import CurrentUser
 
 
 # Cria o Router
@@ -86,3 +87,11 @@ def login_for_access_token(
 
 # Define o esquema de autenticação OAuth2
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login") # "login" é a rota que retorna o token
+
+@router.get("/users/me", response_model=UserRead)
+def read_users_me(current_user: CurrentUser):
+    """
+    Retorna os dados do usuário autenticado (UserRead).
+    Usada pelo frontend para validar o token e popular o estado global.
+    """
+    return current_user
