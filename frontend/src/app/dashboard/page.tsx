@@ -3,29 +3,29 @@
 "use client";
 
 import { useState } from 'react';
-// Agora estes imports devem funcionar!
 import MainLayout from '@/components/Layout/MainLayout';
 import Sidebar from '@/components/Layout/Sidebar';
 import FlowSection from '@/components/home/FlowSection';
 import CalendarSection from '@/components/home/CalendarSection';
 import LanguageSection from '@/components/home/LanguageSection';
+// 🚨 NOVO: Importa o useAuthStore para acessar a função de logout
+import { useAuthStore } from '@/stores/authStore'; 
 
 export default function DashboardPage() {
   
-  // 1. Estado para a navegação na Sidebar
   const [activeSection, setActiveSection] = useState('flow');
-
-  // 2. Função para renderizar o conteúdo
+  // 🚨 NOVO: Obtém a função de logout do store
+  const { logout } = useAuthStore(); 
+  
   const renderContent = () => {
+    // ... (função de renderização) ...
+    // Note: O corpo desta função não muda
     switch (activeSection) {
       case 'flow':
-        // ➡️ DASHBOARD KANBAN
         return <FlowSection />;
       case 'calendar':
-        // ➡️ AGENDA E CALENDÁRIO
         return <CalendarSection />;
       case 'language':
-        // ➡️ APRENDIZADO DE OLD ENGLISH
         return <LanguageSection />;
       default:
         return <FlowSection />;
@@ -33,15 +33,16 @@ export default function DashboardPage() {
   };
 
   return (
-    // MainLayout (inclui o Header)
     <MainLayout>
-        {/* Container principal que divide a tela entre Sidebar (esquerda) e Conteúdo (direita) */}
         <div className="flex min-h-[calc(100vh-80px)]"> 
             
-            {/* Sidebar: componente que contém os 3 links clicáveis */}
-            <Sidebar activeSection={activeSection} onNavigate={setActiveSection} />
+            {/* 🚨 CORREÇÃO: Passa a função onLogout */}
+            <Sidebar 
+                activeSection={activeSection} 
+                onNavigate={setActiveSection} 
+                onLogout={logout} // <--- AQUI!
+            />
             
-            {/* Conteúdo Principal: Exibe a seção ativa */}
             <div className="flex-grow p-8 overflow-y-auto">
                 {renderContent()}
             </div>
