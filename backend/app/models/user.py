@@ -3,7 +3,10 @@ from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy.orm import Relationship as SARelationship
 
-# Importar APÓS definir User
+# Importar o modelo Task para o relacionamento
+from app.models.task import Task 
+
+# Importar APÓS definir User (importação do UserLanguage)
 from .language import UserLanguage
 
 # ----------------------------------------------------------------------
@@ -25,14 +28,17 @@ class UserCreate(UserBase):
     password: str
 
 # ----------------------------------------------------------------------
-# 3. Tabela de Banco de Dados
+# 3. Tabela de Banco de Dados (UNIFICADA)
 # ----------------------------------------------------------------------
 
 class User(UserBase, table=True):
-    """Modelo da tabela no banco de dados."""
+    """Modelo da tabela no banco de dados, incluindo todos os relacionamentos."""
     id: Optional[int] = Field(default=None, primary_key=True)
     hashed_password: str = Field(nullable=False)
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    
+    # Relacionamento NOVO: Lista de tarefas deste usuário
+    tasks: List["Task"] = Relationship(back_populates="user")
     
     # Relacionamento para os idiomas que o usuário está aprendendo
     languages_link: List["UserLanguage"] = Relationship(back_populates="user")
@@ -50,3 +56,4 @@ class UserPasswordChange(SQLModel):
     """Modelo usado para receber a requisição de troca de senha."""
     old_password: str
     new_password: str
+# backend/app/models/user.py

@@ -1,6 +1,8 @@
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime
+from sqlalchemy.types import JSON
+from sqlalchemy import Column
 
 # Forward Reference (apenas tipos, sem instâncias)
 class User(SQLModel):
@@ -49,12 +51,51 @@ class LessonBase(SQLModel):
 class Lesson(LessonBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     language: "Language" = Relationship(back_populates="lessons")
+    
+    # NOVO: Relacionamento com Quizzes
+    quizzes: List["Quiz"] = Relationship(back_populates="lesson") 
 
 class LessonRead(LessonBase):
     id: int
 
     class Config:
         from_attributes = True
+
+class LessonUpdate(SQLModel):
+    """Modelo usado para atualizar parcialmente uma lição."""
+    title: Optional[str] = None
+    content: Optional[str] = None
+    order: Optional[int] = None
+    
+# ----------------------------------------------------------------------
+# NOVO: Modelo de Quiz/Pergunta
+# ----------------------------------------------------------------------
+
+class QuizBase(SQLModel):
+    question: str
+    correct_answer: str
+    
+    # LINHA CORRIGIDA: Removemos o nullable=False do Field e o adicionamos no Column(JSON, nullable=False)
+    options: List[str] = Field(sa_column=Column(JSON, nullable=False)) 
+    
+    # Chave estrangeira ligando o quiz à lição
+    lesson_id: int = Field(foreign_key="lesson.id", nullable=False)
+
+class Quiz(QuizBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    
+    # Relacionamento de volta para a lição
+    lesson: "Lesson" = Relationship(back_populates="quizzes")
+
+class QuizRead(QuizBase):
+    id: int
+
+# ----------------------------------------------------------------------
+# NOVO: Modelo de Requisição para Submissão de Quiz
+# ----------------------------------------------------------------------
+class QuizSubmission(SQLModel):
+    quiz_id: int
+    submitted_answer: str
 
 # ----------------------------------------------------------------------
 # Modelos de Leitura (Retorno da API)
@@ -74,9 +115,3 @@ class UserLanguageRead(SQLModel):
 
     class Config:
         from_attributes = True
-
-class LessonUpdate(SQLModel):
-    """Modelo usado para atualizar parcialmente uma lição."""
-    title: Optional[str] = None
-    content: Optional[str] = None
-    order: Optional[int] = None

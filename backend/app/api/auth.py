@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from datetime import datetime
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from starlette import status
 
 # IMPORTAÇÕES LOCAIS
@@ -83,3 +83,6 @@ def login_for_access_token(
     
     # 4. Retorna o Token
     return Token(access_token=access_token, token_type="bearer")
+
+# Define o esquema de autenticação OAuth2
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login") # "login" é a rota que retorna o token

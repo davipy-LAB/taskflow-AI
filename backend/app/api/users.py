@@ -107,3 +107,4 @@ def enroll_in_language(
     session.refresh(new_enrollment)
     
     return new_enrollment
+

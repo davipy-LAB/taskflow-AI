@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from app.db.session import get_session
-from app.models.language import Language, LanguageRead, LessonRead, LessonBase, Lesson, LanguageBase, LessonUpdate
+from app.models.language import Language, LanguageRead, LessonRead, LessonBase, Lesson, LanguageBase, LessonUpdate, QuizBase, Quiz, QuizRead, QuizSubmission
 
 router = APIRouter(tags=["languages"], prefix="/languages")
 
@@ -136,3 +136,87 @@ def update_lesson(
     session.refresh(lesson)
     
     return lesson
+
+# ----------------------------------------------------------------------
+# Rota para Criar Quiz
+# ----------------------------------------------------------------------
+
+@router.post("/lessons/{lesson_id}/quizzes", response_model=QuizRead, status_code=status.HTTP_201_CREATED)
+def create_quiz_for_lesson(
+    lesson_id: int,
+    quiz_in: QuizBase, # Os dados da pergunta do quiz
+    session: Session = Depends(get_session)
+):
+    """
+    Cria uma nova pergunta de quiz para uma lição específica.
+    """
+    lesson = session.get(Lesson, lesson_id)
+    if not lesson:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Lição com ID {lesson_id} não encontrado."
+        )
+
+    db_quiz = Quiz.model_validate(quiz_in, update={"lesson_id": lesson_id})
+    
+    session.add(db_quiz)
+    session.commit()
+    session.refresh(db_quiz)
+    
+    return db_quiz
+
+# ----------------------------------------------------------------------
+# Rota para Submeter Quiz e Avaliar
+# ----------------------------------------------------------------------
+
+@router.post("/quizzes/submit")
+def submit_quiz_answer(
+    submission: QuizSubmission,
+    # Assumindo que você tem CurrentUser do seu módulo de autenticação
+    # current_user: CurrentUser, 
+    session: Session = Depends(get_session)
+):
+    """
+    Recebe a resposta do usuário para um quiz e avalia.
+    """
+    quiz = session.get(Quiz, submission.quiz_id)
+    
+    if not quiz:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, 
+            detail="Quiz não encontrado."
+        )
+
+    # 1. Avalia a resposta
+    is_correct = (submission.submitted_answer == quiz.correct_answer)
+    
+    # 2. Retorna o resultado para o Front-end
+    return {
+        "is_correct": is_correct,
+        "correct_answer": quiz.correct_answer if not is_correct else None,
+        "feedback": "Resposta Correta! Avance." if is_correct else "Tente novamente. Revise o conteúdo."
+    }
+
+@router.get("/lessons/{lesson_id}/quizzes", response_model=List[QuizRead])
+def read_quizzes_for_lesson(
+    lesson_id: int,
+    session: Session = Depends(get_session)
+):
+    """
+    Lista todos os quizzes (perguntas) para uma lição específica.
+    """
+    # 1. Verifica se a lição existe
+    lesson = session.get(Lesson, lesson_id)
+    if not lesson:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Lição com ID {lesson_id} não encontrada."
+        )
+
+    # 2. Busca todos os quizzes associados a esta lição
+    quizzes = session.exec(
+        select(Quiz).where(Quiz.lesson_id == lesson_id)
+    ).all()
+    
+    # Retorna a lista de quizzes (pode ser vazia, o que é OK)
+    return quizzes
