@@ -38,13 +38,17 @@ class TaskBase(SQLModel):
 
 class Task(TaskBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    
+    # Timestamp de criação
+    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
     # Relacionamento para o Usuário
     user: "User" = Relationship(back_populates="tasks")
 
 class TaskRead(TaskBase):
     id: int
-    created_at: datetime # Adicionaremos este campo na classe User
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
     
 class TaskUpdate(SQLModel):
     """Modelo para atualização parcial (PATCH) de tarefas."""
