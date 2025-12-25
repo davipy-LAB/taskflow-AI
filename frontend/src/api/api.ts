@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useAuthStore } from '@/stores/authStore'; // Importa seu Auth Store
 
 // 1. URL base do seu backend
-const API_URL = 'http://localhost:8000/api/v1'; // Ajuste esta URL se necessário
+const API_URL = 'http://127.0.0.1:8000/api/v1'; // Ajuste esta URL se necessário
 
 const api = axios.create({
   baseURL: API_URL,
