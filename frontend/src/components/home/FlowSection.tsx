@@ -25,7 +25,7 @@ export default function FlowSection() {
             
             {/* Cabeçalho do Kanban */}
             <div className="flex justify-between items-center pb-4 border-b border-base-lighter">
-                <h1 className="text-4xl font-extrabold text-white">Task Flow Kanban</h1>
+                <h1 className="text-4xl font-semibold text-white">Task Flow Kanban</h1>
                 <button className="bg-contrast text-base-dark px-6 py-2 rounded-lg font-semibold hover:bg-contrast/90 shadow-md transition-colors duration-300">
                     + Nova Task
                 </button>

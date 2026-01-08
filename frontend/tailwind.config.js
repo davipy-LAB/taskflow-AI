@@ -16,13 +16,17 @@ module.exports = {
     extend: {
       // 🚨 ADIÇÃO: Cores e Sombras Customizadas
       colors: {
-        'base-dark': '#0A0A0A',      // Fundo Principal (Corpo do Dashboard)
-        'base-lighter': '#171717',   // Fundo de Cards e Containers
-        'base-darker': '#000000',    // Fundo da Sidebar (Mais escuro que o fundo principal)
+        'base-dark': '#0b1220',      // Fundo Principal (Corpo do Dashboard) - suave
+        'base-lighter': '#0f1724',   // Fundo de Cards e Containers - contraste leve
+        'base-darker': '#071021',    // Fundo da Sidebar (Mais escuro que o fundo principal)
         'text-light': '#FFFFFF',
         'text-muted': '#A0A0A0',
         'primary': '#6366f1',        // Roxo/Indigo (Destaque principal)
         'contrast': '#facc15',       // Amarelo (Ação principal: + Nova Task)
+      },
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial'],
+        display: ['Poppins', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial'],
       },
       boxShadow: {
         // Sombra suave para o item ativo da Sidebar e cards

@@ -26,8 +26,8 @@ export default function Sidebar({ activeSection, onNavigate, onLogout }: Sidebar
         
         {/* Logo/Título */}
         <div className="mb-10 p-3 flex items-center gap-2"> {/* Espaçamento um pouco maior aqui */}
-          <span className="text-xl font-extrabold text-primary">Taskflow</span>
-          <span className="text-xl font-extrabold text-white">AI</span>
+          <span className="text-xl font-semibold text-primary">Taskflow</span>
+          <span className="text-xl font-semibold text-white">AI</span>
         </div>
 
         {/* Navegação Principal */}
@@ -40,15 +40,15 @@ export default function Sidebar({ activeSection, onNavigate, onLogout }: Sidebar
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
                 // Estilo moderno: Borda lateral e fundo semi-transparente para o item ativo
-                className={`flex items-center space-x-3 p-3 rounded-r-lg border-l-4 w-full transition-all duration-200 
+                className={`flex items-center space-x-3 p-2.5 rounded-r-lg border-l-4 w-full transition-all duration-200 
                   ${isActive 
                     ? 'border-primary bg-primary/20 text-text-light' 
                     : 'border-transparent text-text-muted hover:bg-base-lighter hover:text-text-light' 
                   }`}
               >
-                <item.icon className="w-5 h-5" /> 
+                <item.icon className="w-4 h-4" /> 
                 <div className="flex flex-col items-start">
-                  <span className="font-medium text-sm">{item.name}</span>
+                  <span className="font-normal text-sm">{item.name}</span>
                   <span className="text-xs opacity-75">{item.description}</span>
                 </div>
               </button>

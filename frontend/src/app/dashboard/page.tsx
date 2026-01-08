@@ -33,20 +33,16 @@ export default function DashboardPage() {
   };
 
   return (
-    <MainLayout>
-        <div className="flex min-h-[calc(100vh-80px)]"> 
-            
-            {/* 🚨 CORREÇÃO: Passa a função onLogout */}
-            <Sidebar 
-                activeSection={activeSection} 
-                onNavigate={setActiveSection} 
-                onLogout={logout} // <--- AQUI!
-            />
-            
-            <div className="flex-grow p-8 overflow-y-auto">
-                {renderContent()}
-            </div>
-        </div>
+    <MainLayout
+      sidebar={(
+        <Sidebar
+          activeSection={activeSection}
+          onNavigate={setActiveSection}
+          onLogout={logout}
+        />
+      )}
+    >
+      {renderContent()}
     </MainLayout>
   );
 }

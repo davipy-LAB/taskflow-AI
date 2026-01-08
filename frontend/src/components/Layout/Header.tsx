@@ -19,7 +19,7 @@ export default function Header() {
         {/* 1. Nome do App Estilizado */}
         <Link href="/dashboard" className="flex items-center space-x-2 text-primary hover:text-primary-light transition-colors duration-150">
           <Briefcase className="w-7 h-7 animate-pulse-primary" /> {/* Ícone com animação */}
-          <span className="text-2xl font-extrabold tracking-widest">Taskflow AI</span>
+          <span className="font-display text-3xl font-semibold tracking-widest">Taskflow AI</span>
         </Link>
 
         {/* 2. Links Externos Clicáveis (GitHub, LinkedIn, CV) */}

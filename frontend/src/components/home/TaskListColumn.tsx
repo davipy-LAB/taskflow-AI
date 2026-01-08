@@ -16,7 +16,7 @@ export default function TaskListColumn({ title, tasks, color }: TaskListColumnPr
 
   return (
     <div className="bg-base-lighter p-4 rounded-lg shadow-xl-primary">
-      <h2 className={`text-xl font-semibold mb-4 ${titleColor}`}>{title}</h2>
+      <h2 className={`text-xl font-medium mb-4 ${titleColor}`}>{title}</h2>
       
       <div className="space-y-4 min-h-[100px] p-1"> 
         
