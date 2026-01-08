@@ -65,7 +65,7 @@ export default function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="fixed h-screen left-0 right-0 bottom-0 z-[99999] flex items-center justify-center bg-black/50">
       <div className="bg-base-lighter rounded-lg shadow-2xl w-full max-w-md mx-4 p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
