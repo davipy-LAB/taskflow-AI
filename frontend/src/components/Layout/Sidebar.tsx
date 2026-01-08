@@ -1,6 +1,9 @@
 // src/components/Layout/Sidebar.tsx
 
+"use client";
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 // Importa o ícone de logout
 import { LayoutDashboard, Calendar, BookOpen, LogOut } from 'lucide-react'; 
 
@@ -12,6 +15,17 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeSection, onNavigate, onLogout }: SidebarProps) {
+
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    // Chama a função de logout do store (limpa localStorage e estado)
+    onLogout();
+    // Aguarda um momento para o estado ser atualizado
+    await new Promise(resolve => setTimeout(resolve, 100));
+    // Redireciona para a página de login
+    router.push('/login');
+  };
   
   const navItems = [
     { name: 'Flow', id: 'flow', icon: LayoutDashboard, description: 'Dashboard Kanban' },
@@ -59,7 +73,7 @@ export default function Sidebar({ activeSection, onNavigate, onLogout }: Sidebar
 
       {/* Botão de Logout no Rodapé */}
       <button 
-        onClick={onLogout} 
+        onClick={handleLogout}
         className="flex items-center space-x-3 p-3 rounded-lg w-full transition-colors duration-200 text-red-400 hover:bg-base-lighter mt-4"
       >
         <LogOut className="w-5 h-5" />
