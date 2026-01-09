@@ -50,14 +50,14 @@ export default function FlowSection() {
     const hasTasks = tasks.length > 0; // 🚨 NOVO: Verifica se há tarefas
 
     return (
-        <div className="space-y-8 animate-fade-in-down">
+        <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in-down">
             
             {/* Cabeçalho do Kanban */}
-            <div className="flex justify-between items-center pb-4 border-b border-base-lighter">
-                <h1 className="text-4xl font-semibold text-white">Task Flow Kanban</h1>
+            <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center pb-4 border-b border-base-lighter">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-white">Task Flow Kanban</h1>
                 <button 
                     onClick={() => setIsModalOpen(true)}
-                    className="bg-contrast text-base-dark px-6 py-2 rounded-lg font-semibold hover:bg-contrast/90 shadow-md transition-colors duration-300"
+                    className="bg-contrast text-base-dark px-4 sm:px-6 py-2 rounded-lg font-semibold hover:bg-contrast/90 shadow-md transition-colors duration-300 w-full sm:w-auto"
                 >
                     + Nova Task
                 </button>
@@ -71,9 +71,9 @@ export default function FlowSection() {
             
             {/* 1. Tratamento de Erro (Visual Suave) */}
             {error && (
-                <div className="p-6 bg-base-lighter rounded-xl border-l-4 border-red-500 text-red-400 shadow-xl">
-                    <h3 className="text-xl font-semibold mb-2">Erro ao Carregar o Kanban 😔</h3>
-                    <p className="text-sm">
+                <div className="p-4 sm:p-6 bg-base-lighter rounded-xl border-l-4 border-red-500 text-red-400 shadow-xl">
+                    <h3 className="text-lg sm:text-xl font-semibold mb-2">Erro ao Carregar o Kanban 😔</h3>
+                    <p className="text-xs sm:text-sm">
                         Não foi possível carregar as tarefas: **{error}**. Verifique sua conexão ou se a rota da API está acessível.
                     </p>
                 </div>
@@ -81,14 +81,14 @@ export default function FlowSection() {
             
             {/* 2. Tratamento de Estado Vazio (Só aparece se NÃO estiver carregando, NÃO houver erro e a lista estiver vazia) */}
             {!isLoading && !error && tasks.length === 0 && (
-                <div className="p-10 bg-base-lighter rounded-xl text-center border border-dashed border-base-lighter/50 shadow-xl">
-                    <h3 className="text-2xl font-semibold text-primary mb-3">Seu Flow Kanban está vazio!</h3>
-                    <p className="text-text-muted mb-6">
+                <div className="p-6 sm:p-10 bg-base-lighter rounded-xl text-center border border-dashed border-base-lighter/50 shadow-xl">
+                    <h3 className="text-xl sm:text-2xl font-semibold text-primary mb-3">Seu Flow Kanban está vazio!</h3>
+                    <p className="text-text-muted mb-6 text-sm sm:text-base">
                         Comece a organizar suas tarefas criando a primeira.
                     </p>
                     <button 
                         onClick={() => setIsModalOpen(true)}
-                        className="px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow-lg hover:bg-primary/90 transition-colors duration-200"
+                        className="w-full sm:w-auto px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow-lg hover:bg-primary/90 transition-colors duration-200"
                     >
                         Crie sua Primeira Task
                     </button>
@@ -98,7 +98,7 @@ export default function FlowSection() {
             {/* O Container Kanban com 3 colunas (Só aparece se houver tarefas) */}
             {!isLoading && !error && tasks.length > 0 && (
                 <DndContext onDragEnd={handleDragEnd}>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     
                     <TaskListColumn title={`A Fazer (${tasks.filter(t => t.status === 'to-do').length})`} tasks={tasks.filter(t => t.status === 'to-do')} color="primary" />
                     <TaskListColumn title={`Em Progresso (${tasks.filter(t => t.status === 'in-progress').length})`} tasks={tasks.filter(t => t.status === 'in-progress')} color="contrast" />

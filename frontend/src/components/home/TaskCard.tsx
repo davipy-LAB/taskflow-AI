@@ -61,17 +61,17 @@ export default function TaskCard({ task }: TaskCardProps) {
       <div 
         ref={setNodeRef}
         style={style}
-        className={`p-4 bg-base-darker rounded-lg shadow-md border-l-4 ${statusColors[task.status]} hover:shadow-lg transition-all duration-200 flex justify-between items-start group ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        className={`p-3 sm:p-4 bg-base-darker rounded-lg shadow-md border-l-4 ${statusColors[task.status]} hover:shadow-lg transition-all duration-200 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 group ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         {...attributes}
         {...listeners}
       >
         
-        <div className="flex-1">
-          <h3 className="text-lg font-bold text-text-light line-clamp-3 break-words mb-1">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm sm:text-lg font-bold text-text-light line-clamp-3 break-words mb-1">
             {task.title}
           </h3>
           
-          <div className="flex justify-between items-center text-xs text-text-muted mt-2">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2 text-xs sm:text-xs text-text-muted mt-2">
             <div className="flex items-center space-x-1">
               <Calendar className="w-3 h-3" />
               <span>{formattedDate}</span>
@@ -84,7 +84,7 @@ export default function TaskCard({ task }: TaskCardProps) {
           onClick={handleDelete}
           disabled={isDeleting}
           onPointerDown={(e) => e.stopPropagation()}
-          className="ml-2 p-1 text-red-400 hover:text-red-500 hover:bg-red-400/10 rounded transition-colors duration-200 opacity-0 group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="ml-0 sm:ml-2 p-1 text-red-400 hover:text-red-500 hover:bg-red-400/10 rounded transition-colors duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
           title="Deletar tarefa"
         >
           <Trash2 className="w-4 h-4" />

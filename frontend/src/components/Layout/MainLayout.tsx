@@ -14,12 +14,20 @@ export default function MainLayout({ children, sidebar }: MainLayoutProps) {
     <div className="min-h-screen bg-base-dark text-text-light">
       <Header />
 
-      {/* Layout com Sidebar à esquerda (se fornecido) e conteúdo à direita */}
-      <div className="container mx-auto p-0 font-display">
-        <div className="flex min-h-[calc(100vh-80px)]">
-          {sidebar}
+      {/* Sidebar Mobile/Tablet - ACIMA do conteúdo */}
+      <div className="lg:hidden">
+        {sidebar}
+      </div>
 
-          <main className="flex-grow p-8 overflow-y-auto">
+      {/* Layout Principal */}
+      <div className="w-full font-display">
+        <div className="flex min-h-[calc(100vh-80px)]">
+          {/* Sidebar Desktop - AO LADO do conteúdo */}
+          <div className="hidden lg:block">
+            {sidebar}
+          </div>
+
+          <main className="flex-grow p-4 sm:p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
             {children}
           </main>
         </div>
