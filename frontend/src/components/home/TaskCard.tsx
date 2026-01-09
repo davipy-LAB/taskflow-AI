@@ -61,7 +61,7 @@ export default function TaskCard({ task }: TaskCardProps) {
       <div 
         ref={setNodeRef}
         style={style}
-        className={`p-3 sm:p-4 bg-base-darker rounded-lg shadow-md border-l-4 ${statusColors[task.status]} hover:shadow-lg transition-all duration-200 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 group ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        className={`touch-action-none select-none p-3 sm:p-4 bg-base-darker rounded-lg shadow-md border-l-4 ${statusColors[task.status]} hover:shadow-lg transition-all duration-200 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 group ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
         {...attributes}
         {...listeners}
       >

@@ -6,11 +6,27 @@ import { useTaskStore } from '../../stores/taskStores';
 import { useEffect, useState } from 'react';
 import TaskListColumn from './TaskListColumn';
 import CreateTaskModal from './CreateTaskModal';
-import { DndContext, DragEndEvent } from '@dnd-kit/core'; 
+import { DndContext, DragEndEvent } from '@dnd-kit/core';
+import { TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core'; 
 
 export default function FlowSection() {
     const { tasks, isLoading, error, fetchTasks, updateTaskStatus } = useTaskStore();
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Configurar sensores: Desktop sem delay, Mobile com 1.5s
+    const sensors = useSensors(
+      useSensor(MouseSensor, {
+        activationConstraint: {
+          distance: 8, // Desktop: apenas movimento
+        },
+      }),
+      useSensor(TouchSensor, {
+        activationConstraint: {
+          delay: 250, // Mobile: 1.5 segundos de pressão
+          tolerance: 8,
+        },
+      })
+    );
   
     useEffect(() => {
         fetchTasks();
@@ -97,7 +113,7 @@ export default function FlowSection() {
             
             {/* O Container Kanban com 3 colunas (Só aparece se houver tarefas) */}
             {!isLoading && !error && tasks.length > 0 && (
-                <DndContext onDragEnd={handleDragEnd}>
+                <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                     
                     <TaskListColumn title={`A Fazer (${tasks.filter(t => t.status === 'to-do').length})`} tasks={tasks.filter(t => t.status === 'to-do')} color="primary" />
