@@ -67,7 +67,7 @@ export default function TaskCard({ task }: TaskCardProps) {
       >
         
         <div className="flex-1">
-          <h3 className="text-lg font-bold text-text-light truncate mb-1">
+          <h3 className="text-lg font-bold text-text-light line-clamp-3 break-words mb-1">
             {task.title}
           </h3>
           
