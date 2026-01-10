@@ -4,6 +4,7 @@ import app.api.auth as auth
 import app.api.users as users
 import app.api.language as language
 import app.api.tasks as tasks
+import app.api.calendar as calendar_api # Adicione o import do seu novo arquivo de rotas
 from app.db.session import create_db_and_tables
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -44,3 +45,6 @@ app.include_router(language.router, prefix="/api/v1")
 
 # tasks.router already uses prefix '/tasks', include under '/api/v1'
 app.include_router(tasks.router, prefix="/api/v1")
+
+# Inclui o router do calendário
+app.include_router(calendar_api.router, prefix="/api/v1/calendar")

@@ -1,7 +1,8 @@
 # backend/app/db/session.py
 from sqlmodel import create_engine, SQLModel, Session
 from app.config import DATABASE_URL
-from app.models import user # Garante que os modelos sejam importados
+from app.models import user
+ # Garante que os modelos sejam importados
 
 # Removemos o "async_" e usamos apenas uma engine síncrona
 engine = create_engine(

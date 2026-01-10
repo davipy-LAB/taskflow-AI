@@ -9,6 +9,14 @@ from app.models.task import Task
 # Importar APÓS definir User (importação do UserLanguage)
 from .language import UserLanguage
 
+from typing import TYPE_CHECKING
+
+# Importar APÓS definir User (importação do Appointment)
+
+# Use TYPE_CHECKING para o Appointment e Task
+if TYPE_CHECKING:
+    from app.models.calendar import Appointment
+    from app.models.task import Task
 # ----------------------------------------------------------------------
 # 1. Base (Campos Comuns)
 # ----------------------------------------------------------------------
@@ -42,7 +50,7 @@ class User(UserBase, table=True):
     
     # Relacionamento para os idiomas que o usuário está aprendendo
     languages_link: List["UserLanguage"] = Relationship(back_populates="user")
-
+    appointments: List["Appointment"] = Relationship(back_populates="user")
 # ----------------------------------------------------------------------
 # 4. Leitura (Retorno da API)
 # ----------------------------------------------------------------------
@@ -57,3 +65,15 @@ class UserPasswordChange(SQLModel):
     old_password: str
     new_password: str
 # backend/app/models/user.py
+
+class User(UserBase, table=True):
+    __tablename__ = "users"
+    id: Optional[int] = Field(default=None, primary_key=True)
+    hashed_password: str = Field(nullable=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    
+    tasks: List["Task"] = Relationship(back_populates="user")
+    languages_link: List["UserLanguage"] = Relationship(back_populates="user")
+    
+    # Ajuste o back_populates para bater com o nome no calendar.py
+    appointments: List["Appointment"] = Relationship(back_populates="user")
