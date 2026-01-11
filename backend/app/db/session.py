@@ -2,6 +2,8 @@
 from sqlmodel import create_engine, SQLModel, Session
 from app.config import DATABASE_URL
 from app.models import user # Garante que os modelos sejam importados
+# Adicione nos imports
+from app.models.calendar import Appointment
 
 # Removemos o "async_" e usamos apenas uma engine síncrona
 engine = create_engine(

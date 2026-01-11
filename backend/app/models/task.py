@@ -1,12 +1,13 @@
 # backend/app/models/task.py
 
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime, date
 
 from enum import Enum
 
-from app.models.language import User
+if TYPE_CHECKING:
+    from app.models.user import User
 # Enum (usamos str para facilitar a visualização no banco e no Pydantic)
 class TaskStatus(str, Enum):
     TODO = "to-do"
@@ -34,7 +35,7 @@ class TaskBase(SQLModel):
     due_date: Optional[date] = None
     
     # Chave estrangeira para ligar a tarefa ao Usuário
-    user_id: int = Field(foreign_key="user.id", nullable=False)
+    user_id: int = Field(foreign_key="users.id", nullable=False)
 
 class Task(TaskBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

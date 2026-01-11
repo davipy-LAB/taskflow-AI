@@ -4,9 +4,7 @@ from datetime import datetime
 from sqlalchemy.types import JSON
 from sqlalchemy import Column
 
-# Forward Reference (apenas tipos, sem instâncias)
-class User(SQLModel):
-    pass
+from app.models.user import User
 
 # ----------------------------------------------------------------------
 # Modelo de Idioma (o "Curso")
