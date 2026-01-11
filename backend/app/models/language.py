@@ -28,7 +28,7 @@ class UserLanguage(SQLModel, table=True):
     Tabela de ligação que rastreia qual idioma um usuário está aprendendo 
     e seu progresso. (Many-to-Many com dados extras).
     """
-    user_id: Optional[int] = Field(default=None, primary_key=True, foreign_key="user.id")
+    user_id: Optional[int] = Field(default=None, primary_key=True, foreign_key="users.id")
     language_id: Optional[int] = Field(default=None, primary_key=True, foreign_key="language.id")
     progress_percentage: float = Field(default=0.0)
     last_access: datetime = Field(default_factory=datetime.utcnow)
