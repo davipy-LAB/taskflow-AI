@@ -9,6 +9,8 @@ O projeto foi desenvolvido com arquitetura moderna fullstack e pensado para esca
 
 Este projeto não nasceu como exercício acadêmico, mas como uma **solução prática** para organização pessoal e de projetos.
 
+<img width="1360" height="680" alt="image" src="https://github.com/user-attachments/assets/22dadda6-7316-4962-b855-2071d479149d" />
+
 ---
 
 ## 🧠 Motivação
