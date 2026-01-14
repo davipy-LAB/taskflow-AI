@@ -106,7 +106,7 @@ A ideia central é permitir que o usuário **organize, mova e acompanhe tarefas 
 ### Infra / Dev
 - API modular e escalável
 - Separação clara de responsabilidades
-- Projeto preparado para CI/CD e deploy em cloud
+- Projeto com deploy em cloud
 
 ---
 
