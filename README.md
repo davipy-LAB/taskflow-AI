@@ -1,6 +1,6 @@
 # 🚀 TaskFlow AI
 
-> **Status:** v3.8 Alpha 
+> **Status:** v1.0.5 Beta
 > **Autor:** Davi Dias de Souza  
 > **Projeto Fullstack autoral**
 
@@ -65,7 +65,7 @@ A ideia central é permitir que o usuário **organize, mova e acompanhe tarefas 
 ### 🧩 CRUD Completo
 - Criar tarefas
 - Editar tarefas
-- Mover tarefas entre estados
+- Mover tarefas entre estados com swap feature
 - Excluir tarefas
 - Feedback visual e mensagens personalizadas (UX)
 
