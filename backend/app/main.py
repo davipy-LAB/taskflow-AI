@@ -1,5 +1,6 @@
 # Conteúdo de backend/app/main.py
 from fastapi import FastAPI
+from fastapi.concurrency import asynccontextmanager
 import app.api.auth as auth
 import app.api.users as users
 import app.api.language as language
@@ -7,8 +8,16 @@ import app.api.tasks as tasks
 from app.api import calendar
 from app.db.session import create_db_and_tables
 from fastapi.middleware.cors import CORSMiddleware
+from app.config import init_db
 
-app = FastAPI(title="TaskFlow AI Backend")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Executa na inicialização
+    await init_db() 
+    yield
+    
+app = FastAPI(title="TaskFlow AI Backend", lifespan=lifespan)
 
 # Define as origens permitidas
 origins = [
