@@ -3,6 +3,7 @@
 import { X, Calendar, Clock, AlignLeft } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { format } from 'date-fns';
 
 interface CreateAppointmentModalProps {
   isOpen: boolean;
@@ -32,41 +33,52 @@ export default function CreateAppointmentModal({ isOpen, onClose, selectedDate, 
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-base-darker w-full max-w-md mx-4 rounded-2xl shadow-2xl border border-base-lighter overflow-hidden">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+      <div className="bg-base-darker w-full max-w-md rounded-2xl shadow-2xl border border-base-lighter overflow-hidden max-h-[95vh] flex flex-col animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-base-lighter">
-          <h2 className="text-xl font-bold text-white">Novo Compromisso</h2>
-          <button onClick={onClose} className="text-text-muted hover:text-white transition-colors">
+        <div className="flex items-center justify-between p-5 md:p-6 border-b border-base-lighter">
+          <h2 className="text-xl font-bold text-white">Novo Agendamento</h2>
+          <button 
+            onClick={onClose} 
+            className="text-text-muted hover:text-white transition-colors p-1"
+          >
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        {/* Form - RESTAURADO AQUI */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Body com Scroll para mobile */}
+        <form onSubmit={handleSubmit} className="p-5 md:p-8 space-y-5 overflow-y-auto">
+          
           <div>
-            <label className="block text-sm font-medium text-text-muted mb-1">Título</label>
+            <label className="block text-sm font-medium text-text-muted mb-1.5">Título</label>
             <input
               required
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full bg-base-dark border border-base-lighter rounded-lg p-3 text-white focus:ring-2 focus:ring-primary outline-none transition-all"
-              placeholder="Ex: Reunião de Alinhamento"
+              placeholder="Ex: Reunião de Design"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          {/* Grid Responsivo: 1 coluna no mobile, 2 no desktop */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-text-muted mb-1">Data</label>
-              <div className="flex items-center gap-2 bg-base-dark/50 p-3 rounded-lg border border-base-lighter text-text-light opacity-80">
-                <Calendar className="w-4 h-4 text-primary" />
-                <span className="text-sm">{selectedDate.toLocaleDateString('pt-BR')}</span>
+              <label className="block text-sm font-medium text-text-muted mb-1.5">Data</label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-3.5 w-4 h-4 text-primary" />
+                <input
+                  disabled
+                  type="text"
+                  value={format(selectedDate, 'dd/MM/yyyy')}
+                  className="w-full bg-base-dark/50 border border-base-lighter rounded-lg p-3 pl-10 text-white cursor-not-allowed"
+                />
               </div>
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-text-muted mb-1">Horário</label>
+              <label className="block text-sm font-medium text-text-muted mb-1.5">Horário</label>
               <div className="relative">
                 <Clock className="absolute left-3 top-3.5 w-4 h-4 text-primary" />
                 <input
@@ -80,24 +92,33 @@ export default function CreateAppointmentModal({ isOpen, onClose, selectedDate, 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-muted mb-1">Descrição (Opcional)</label>
+            <label className="block text-sm font-medium text-text-muted mb-1.5">Descrição (Opcional)</label>
             <div className="relative">
               <AlignLeft className="absolute left-3 top-3.5 w-4 h-4 text-primary" />
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full bg-base-dark border border-base-lighter rounded-lg p-3 pl-10 text-white focus:ring-2 focus:ring-primary outline-none transition-all h-24 resize-none"
-                placeholder="Detalhes do compromisso..."
+                placeholder="Detalhes adicionais..."
               />
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl shadow-lg-primary transition-all active:scale-[0.98] mt-4"
-          >
-            Agendar Compromisso
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:flex-1 order-2 sm:order-1 bg-base-lighter hover:bg-base-light text-white font-medium py-3 rounded-xl transition-all"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="w-full sm:flex-1 order-1 sm:order-2 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+            >
+              Agendar
+            </button>
+          </div>
         </form>
       </div>
     </div>,

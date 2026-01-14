@@ -1,128 +1,103 @@
 // src/app/home/FlowSection.tsx
-
 "use client";
 
 import { useTaskStore } from '../../stores/taskStores'; 
 import { useEffect, useState } from 'react';
 import TaskListColumn from './TaskListColumn';
 import CreateTaskModal from './CreateTaskModal';
-import { DndContext, DragEndEvent } from '@dnd-kit/core';
-import { TouchSensor, MouseSensor, useSensor, useSensors } from '@dnd-kit/core'; 
+import { LayoutDashboard, Plus, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function FlowSection() {
-    const { tasks, isLoading, error, fetchTasks, updateTaskStatus } = useTaskStore();
+    const { tasks, isLoading, error, fetchTasks } = useTaskStore();
     const [isModalOpen, setIsModalOpen] = useState(false);
-
-    // Configurar sensores: Desktop sem delay, Mobile com 1.5s
-    const sensors = useSensors(
-      useSensor(MouseSensor, {
-        activationConstraint: {
-          distance: 8, // Desktop: apenas movimento
-        },
-      }),
-      useSensor(TouchSensor, {
-        activationConstraint: {
-          delay: 250, // Mobile: 1.5 segundos de pressão
-          tolerance: 8,
-        },
-      })
-    );
+    const [activeTab, setActiveTab] = useState<'to-do' | 'in-progress' | 'done'>('to-do');
   
-    useEffect(() => {
-        fetchTasks();
-    }, [fetchTasks]);
+    useEffect(() => { fetchTasks(); }, [fetchTasks]);
 
-    // Mapear color (usado em TaskListColumn) para status
-    const colorToStatus: Record<string, 'to-do' | 'in-progress' | 'done'> = {
-      'primary': 'to-do',
-      'contrast': 'in-progress',
-      'green': 'done',
-    };
+    // 1. Estado de Carregamento
+    if (isLoading && tasks.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] text-text-muted">
+                <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+                <p className="animate-pulse">Sincronizando seu fluxo...</p>
+            </div>
+        );
+    }
 
-    // Handler para o drag end
-    const handleDragEnd = async (event: DragEndEvent) => {
-      const { active, over } = event;
-
-      if (!over) return;
-
-      // Extrair task ID do formato "task-{id}"
-      const taskId = parseInt(active.id.toString().split('-')[1]);
-      const newStatus = colorToStatus[over.id as string];
-
-      if (newStatus && taskId) {
-        try {
-          await updateTaskStatus(taskId, newStatus);
-        } catch (err) {
-          console.error('Erro ao atualizar status:', err);
-        }
-      }
-    }; 
-
-    // Filtragem das tarefas
-    const tasksTodo = tasks.filter(t => t.status === 'to-do');
-    const tasksInProgress = tasks.filter(t => t.status === 'in-progress');
-    const tasksDone = tasks.filter(t => t.status === 'done');
-
-    const hasTasks = tasks.length > 0; // 🚨 NOVO: Verifica se há tarefas
-
-    return (
-        <div className="space-y-4 sm:space-y-6 md:space-y-8 animate-fade-in-down">
-            
-            {/* Cabeçalho do Kanban */}
-            <div className="flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-center pb-4 border-b border-base-lighter">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-white">Task Flow Kanban</h1>
-                <button 
-                    onClick={() => setIsModalOpen(true)}
-                    className="bg-contrast text-base-dark px-4 sm:px-6 py-2 rounded-lg font-semibold hover:bg-contrast/90 shadow-md transition-colors duration-300 w-full sm:w-auto"
-                >
-                    + Nova Task
+    // 2. Estado de Erro
+    if (error) {
+        return (
+            <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-2xl text-center">
+                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
+                <h3 className="text-white font-bold">Ops! Algo deu errado</h3>
+                <p className="text-text-muted text-sm mb-4">{error}</p>
+                <button onClick={() => fetchTasks()} className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all">
+                    Tentar Novamente
                 </button>
             </div>
+        );
+    }
 
-            {/* Modal */}
-            <CreateTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-
-            {/* Tratamento de Estados */}
-            {isLoading && <div className="text-primary text-lg animate-pulse-primary">Carregando tarefas...</div>}
-            
-            {/* 1. Tratamento de Erro (Visual Suave) */}
-            {error && (
-                <div className="p-4 sm:p-6 bg-base-lighter rounded-xl border-l-4 border-red-500 text-red-400 shadow-xl">
-                    <h3 className="text-lg sm:text-xl font-semibold mb-2">Erro ao Carregar o Kanban 😔</h3>
-                    <p className="text-xs sm:text-sm">
-                        Não foi possível carregar as tarefas: **{error}**. Verifique sua conexão ou se a rota da API está acessível.
-                    </p>
-                </div>
-            )}
-            
-            {/* 2. Tratamento de Estado Vazio (Só aparece se NÃO estiver carregando, NÃO houver erro e a lista estiver vazia) */}
-            {!isLoading && !error && tasks.length === 0 && (
-                <div className="p-6 sm:p-10 bg-base-lighter rounded-xl text-center border border-dashed border-base-lighter/50 shadow-xl">
-                    <h3 className="text-xl sm:text-2xl font-semibold text-primary mb-3">Seu Flow Kanban está vazio!</h3>
-                    <p className="text-text-muted mb-6 text-sm sm:text-base">
-                        Comece a organizar suas tarefas criando a primeira.
-                    </p>
-                    <button 
-                        onClick={() => setIsModalOpen(true)}
-                        className="w-full sm:w-auto px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow-lg hover:bg-primary/90 transition-colors duration-200"
-                    >
-                        Crie sua Primeira Task
+    return (
+        <section className="space-y-6">
+          <div className="flex justify-between items-center px-2 gap-x-8"> 
+              <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                      <LayoutDashboard size={24} />
+                  </div>
+                  <div>
+                      <h1 className="text-2xl font-bold text-white leading-none">Meu Fluxo</h1>
+                      <p className="text-text-muted text-sm mt-1">Arraste para os lados no mobile</p>
+                  </div>
+              </div>
+              <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-bold rounded-xl shadow-lg-primary hover:brightness-110 active:scale-95 transition-all"
+              >
+                  <Plus size={20} />
+                  <span className="hidden sm:inline">Nova Tarefa</span>
+              </button>
+          </div>
+            {/* Empty State */}
+            {!isLoading && tasks.length === 0 ? (
+                <div className="text-center py-20 border-2 border-dashed border-base-lighter rounded-3xl">
+                    <p className="text-text-muted mb-4">Seu kanban está vazio.</p>
+                    <button onClick={() => setIsModalOpen(true)} className="text-primary font-bold hover:underline">
+                        Criar minha primeira tarefa
                     </button>
                 </div>
+            ) : (
+                <>
+                    {/* Tabs Mobile */}
+                    <div className="flex sm:hidden bg-base-darker p-1 rounded-2xl border border-base-lighter">
+                        {(['to-do', 'in-progress', 'done'] as const).map((id) => (
+                            <button
+                                key={id}
+                                onClick={() => setActiveTab(id)}
+                                className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all ${
+                                    activeTab === id ? 'bg-base-lighter text-white shadow-lg' : 'text-text-muted'
+                                }`}
+                            >
+                                {id === 'to-do' ? 'A Fazer' : id === 'in-progress' ? 'Progresso' : 'Concluído'}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className={`${activeTab === 'to-do' ? 'block' : 'hidden md:block'}`}>
+                            <TaskListColumn title="A Fazer" status="to-do" color="primary" tasks={tasks.filter(t => t.status === 'to-do')} />
+                        </div>
+                        <div className={`${activeTab === 'in-progress' ? 'block' : 'hidden md:block'}`}>
+                            <TaskListColumn title="Progresso" status="in-progress" color="contrast" tasks={tasks.filter(t => t.status === 'in-progress')} />
+                        </div>
+                        <div className={`${activeTab === 'done' ? 'block' : 'hidden md:block'}`}>
+                            <TaskListColumn title="Concluído" status="done" color="green" tasks={tasks.filter(t => t.status === 'done')} />
+                        </div>
+                    </div>
+                </>
             )}
-            
-            {/* O Container Kanban com 3 colunas (Só aparece se houver tarefas) */}
-            {!isLoading && !error && tasks.length > 0 && (
-                <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    
-                    <TaskListColumn title={`A Fazer (${tasks.filter(t => t.status === 'to-do').length})`} tasks={tasks.filter(t => t.status === 'to-do')} color="primary" />
-                    <TaskListColumn title={`Em Progresso (${tasks.filter(t => t.status === 'in-progress').length})`} tasks={tasks.filter(t => t.status === 'in-progress')} color="contrast" />
-                    <TaskListColumn title={`Concluído (${tasks.filter(t => t.status === 'done').length})`} tasks={tasks.filter(t => t.status === 'done')} color="green" />
-                    
-                  </div>
-                </DndContext>
-            )}
-        </div>
+
+            <CreateTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        </section>
     );
 }

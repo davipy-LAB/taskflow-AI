@@ -1,121 +1,120 @@
 "use client";
-
 import React, { useState, useEffect } from 'react';
 import CreateAppointmentModal from './CreateAppointmentModal';
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import ViewAppointmentModal from './ViewAppointmentModal'; // Novo Import
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useCalendarStore } from '@/stores/calendarStore';
-import { 
-  format, addMonths, subMonths, startOfMonth, endOfMonth, 
-  startOfWeek, endOfWeek, isSameMonth, isSameDay, eachDayOfInterval 
-} from 'date-fns';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, eachDayOfInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function CalendarSection() {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    
+    // Estados para Visualização
+    const [selectedApp, setSelectedApp] = useState<any>(null);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-    // Pegamos os dados e funções da Store
     const { appointments, fetchAppointments, createAppointment, deleteAppointment } = useCalendarStore();
 
-    // Busca os dados ao carregar a página
-    useEffect(() => {
-        fetchAppointments();
-    }, [fetchAppointments]);
+    useEffect(() => { fetchAppointments(); }, [fetchAppointments]);
 
-    // Gera os dias do calendário
     const calendarDays = eachDayOfInterval({ 
         start: startOfWeek(startOfMonth(currentMonth)), 
         end: endOfWeek(endOfMonth(currentMonth)) 
     });
 
     return (
-        <div className="bg-base-darker border border-base-lighter rounded-2xl p-6 shadow-xl">
-            {/* --- Cabeçalho do Calendário --- */}
-            <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold text-white capitalize">
+        <div className="bg-base-darker border border-base-lighter rounded-xl md:rounded-2xl p-3 md:p-6 shadow-xl">
+            {/* Header Responsivo */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2 capitalize">
                     {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
                 </h2>
-                <div className="flex gap-2">
-                    <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 hover:bg-base-lighter rounded-lg text-text-muted transition-all">
-                        <ChevronLeft className="w-5 h-5" />
-                    </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-between">
+                    <div className="flex bg-base-dark rounded-lg p-1">
+                        <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 hover:bg-base-lighter rounded-md transition-colors"><ChevronLeft className="w-5 h-5 text-white"/></button>
+                        <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-2 hover:bg-base-lighter rounded-md transition-colors"><ChevronRight className="w-5 h-5 text-white"/></button>
+                    </div>
                     <button 
-                        onClick={() => setIsModalOpen(true)} 
-                        className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg transition-all font-medium"
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-bold transition-all active:scale-95 shadow-lg shadow-primary/20"
                     >
-                        <Plus className="w-4 h-4" /> Novo
-                    </button>
-                    <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-2 hover:bg-base-lighter rounded-lg text-text-muted transition-all">
-                        <ChevronRight className="w-5 h-5" />
+                        <Plus className="w-5 h-5" /> <span className="hidden sm:inline">Novo</span>
                     </button>
                 </div>
             </div>
 
-            {/* --- Grid dos Dias --- */}
-            <div className="grid grid-cols-7 gap-px bg-base-lighter/30 rounded-xl overflow-hidden border border-base-lighter/50">
-                {calendarDays.map((day, idx) => {
-                    // 🔴 A CORREÇÃO MÁGICA ESTÁ AQUI:
-                    // Convertemos o dia do calendário para String YYYY-MM-DD
-                    const formattedDay = format(day, 'yyyy-MM-dd');
+            {/* Dias da Semana - Abreviação no Mobile */}
+            <div className="grid grid-cols-7 mb-2 border-b border-base-lighter">
+                {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(day => (
+                    <div key={day} className="py-2 text-center text-xs md:text-sm font-semibold text-text-muted">
+                        {day}
+                    </div>
+                ))}
+            </div>
 
-                    // Filtramos comparando String com String
-                    const dayApps = appointments?.filter(app => {
-                        const appDateClean = app.date.split('T')[0];
-                        return appDateClean === formattedDay;
-                    }) || [];
-                    
+            {/* Grid do Calendário */}
+            <div className="grid grid-cols-7 gap-px bg-base-lighter border border-base-lighter rounded-lg overflow-hidden">
+                {calendarDays.map((day, idx) => {
+                    const dayApps = appointments.filter(app => isSameDay(new Date(app.date + 'T00:00:00'), day));
+                    const isCurrentMonth = isSameMonth(day, currentMonth);
+
                     return (
                         <div 
                             key={idx}
                             onClick={() => setSelectedDate(day)}
-                            className={`min-h-[120px] bg-base-darker p-2 transition-all cursor-pointer hover:bg-primary/5
-                                ${!isSameMonth(day, currentMonth) ? 'opacity-20' : ''}
-                                ${isSameDay(day, selectedDate) ? 'ring-2 ring-inset ring-primary' : ''}
+                            className={`min-h-[80px] md:min-h-[120px] p-1 md:p-2 transition-all cursor-pointer relative
+                                ${isCurrentMonth ? 'bg-base-darker text-white' : 'bg-base-dark/50 text-text-muted'}
+                                ${isSameDay(day, new Date()) ? 'ring-1 ring-inset ring-primary/50' : ''}
+                                hover:bg-base-dark
                             `}
                         >
-                            {/* Número do dia */}
-                            <span className={`text-sm font-medium ${isSameDay(day, new Date()) ? 'bg-primary text-white px-2 py-1 rounded-full' : 'text-text-muted'}`}>
+                            <span className={`text-xs md:text-sm font-medium ${isSameDay(day, new Date()) ? 'bg-primary text-white w-6 h-6 flex items-center justify-center rounded-full' : ''}`}>
                                 {format(day, 'd')}
                             </span>
                             
-                            {/* Lista de Tarefas do Dia */}
-                            <div className="mt-2 space-y-1 overflow-y-auto max-h-[80px] custom-scrollbar">
-                                {dayApps.map((app) => (
+                            <div className="mt-1 space-y-1">
+                                {dayApps.slice(0, 3).map(app => (
                                     <div 
-                                        key={app.id} 
-                                        className="group relative text-[10px] bg-primary/10 text-primary p-1.5 rounded border border-primary/20 truncate transition-colors hover:bg-primary/20"
+                                        key={app.id}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedApp(app);
+                                            setIsViewModalOpen(true);
+                                        }}
+                                        className="text-[10px] md:text-xs bg-primary/20 text-primary-light border-l-2 border-primary p-1 rounded truncate hover:bg-primary/30 transition-colors"
                                     >
-                                        <span className="font-bold">{app.time.substring(0, 5)}</span> - {app.title}
-                                        
-                                        {/* Botão de Lixeira (Só aparece ao passar o mouse) */}
-                                        <button 
-                                            onClick={(e) => { 
-                                                e.stopPropagation(); // Impede de selecionar o dia ao deletar
-                                                if (app.id) deleteAppointment(app.id); 
-                                            }}
-                                            className="absolute right-1 top-1/2 -translate-y-1/2 hidden group-hover:flex items-center justify-center bg-red-500 text-white rounded p-1 hover:bg-red-600 shadow-sm"
-                                            title="Excluir agendamento"
-                                        >
-                                            <Trash2 className="w-3 h-3" />
-                                        </button>
+                                        <span className="hidden md:inline">{app.time.substring(0, 5)} </span>
+                                        {app.title}
                                     </div>
                                 ))}
+                                {dayApps.length > 3 && (
+                                    <div className="text-[9px] text-text-muted pl-1">+{dayApps.length - 3} mais</div>
+                                )}
                             </div>
                         </div>
                     );
                 })}
             </div>
 
-            {/* --- Modal de Criação --- */}
+            {/* Modais */}
             <CreateAppointmentModal 
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
                 selectedDate={selectedDate}
                 onConfirm={async (data) => {
                     await createAppointment(data);
-                    setIsModalOpen(false);
+                    setIsCreateModalOpen(false);
                 }}
+            />
+
+            <ViewAppointmentModal 
+                isOpen={isViewModalOpen}
+                onClose={() => setIsViewModalOpen(false)}
+                appointment={selectedApp}
+                onDelete={deleteAppointment}
             />
         </div>
     );

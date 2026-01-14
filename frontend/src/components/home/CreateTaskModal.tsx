@@ -1,5 +1,4 @@
 // src/components/home/CreateTaskModal.tsx
-
 "use client";
 
 import { useState } from 'react';
@@ -21,15 +20,11 @@ export default function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProp
     title: '',
     description: '',
     due_date: '',
-    status: 'to-do' as const,
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,21 +37,14 @@ export default function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProp
         title: formData.title,
         description: formData.description || undefined,
         due_date: formData.due_date || undefined,
-        status: formData.status,
+        status: 'to-do', // Status fixo na criação
       };
 
       await createTask(taskData);
-      
-      // Reseta o formulário e fecha o modal
-      setFormData({
-        title: '',
-        description: '',
-        due_date: '',
-        status: 'to-do',
-      });
+      setFormData({ title: '', description: '', due_date: '' });
       onClose();
-    } catch (err: any) {
-      setError(err.message || 'Erro ao criar tarefa');
+    } catch (err) {
+      setError('Erro ao criar tarefa. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -65,92 +53,53 @@ export default function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProp
   if (!isOpen) return null;
 
   return (
-    <div className="fixed h-screen left-0 right-0 bottom-0 z-[99999] flex items-center justify-center bg-black/50">
-      <div className="bg-base-lighter rounded-lg shadow-2xl w-full max-w-md mx-4 p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold text-white">Nova Tarefa</h2>
-          <button
-            onClick={onClose}
-            className="text-text-muted hover:text-text-light transition-colors"
-          >
-            <X className="w-6 h-6" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-base-darker w-full max-w-md rounded-xl border border-base-lighter shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="flex justify-between items-center p-4 border-b border-base-lighter">
+          <h2 className="text-lg font-bold text-white">Nova Tarefa</h2>
+          <button onClick={onClose} className="text-text-muted hover:text-white transition-colors">
+            <X size={20} />
           </button>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-500/20 border border-red-500 text-red-400 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Title */}
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {error && <p className="text-red-400 text-sm text-center bg-red-400/10 py-2 rounded">{error}</p>}
+          
           <div>
-            <label className="block text-sm font-medium text-text-light mb-1">
-              Título *
-            </label>
+            <label className="block text-sm font-medium text-text-light mb-1">Título</label>
             <input
-              type="text"
+              required
               name="title"
+              className="w-full px-3 py-2 bg-base-dark text-text-light rounded-lg border border-base-lighter focus:border-primary outline-none transition-colors"
+              placeholder="O que precisa ser feito?"
               value={formData.title}
               onChange={handleChange}
-              placeholder="Ex: Marcar a reunião com a equipe"
-              required
-              className="w-full px-3 py-2 bg-base-dark text-text-light rounded-lg border border-base-lighter focus:border-primary focus:outline-none transition-colors"
             />
           </div>
 
-          {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-text-light mb-1">
-              Descrição
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Descrição opcional..."
-              rows={3}
-              className="w-full px-3 py-2 bg-base-dark text-text-light rounded-lg border border-base-lighter focus:border-primary focus:outline-none transition-colors resize-none"
-            />
-          </div>
-
-          {/* Due Date */}
-          <div>
-            <label className="block text-sm font-medium text-text-light mb-1">
-              Data de Vencimento
-            </label>
+            <label className="block text-sm font-medium text-text-light mb-1">Prazo (Opcional)</label>
             <input
               type="date"
               name="due_date"
+              className="w-full px-3 py-2 bg-base-dark text-text-light rounded-lg border border-base-lighter focus:border-primary outline-none transition-colors [color-scheme:dark]"
               value={formData.due_date}
               onChange={handleChange}
-              className="w-full px-3 py-2 bg-base-dark text-text-light rounded-lg border border-base-lighter focus:border-primary focus:outline-none transition-colors"
             />
           </div>
 
-          {/* Status */}
           <div>
-            <label className="block text-sm font-medium text-text-light mb-1">
-              Status
-            </label>
-            <select
-              name="status"
-              value={formData.status}
+            <label className="block text-sm font-medium text-text-light mb-1">Descrição</label>
+            <textarea
+              name="description"
+              className="w-full px-3 py-2 bg-base-dark text-text-light rounded-lg border border-base-lighter focus:border-primary outline-none transition-colors h-24 resize-none"
+              placeholder="Detalhes da tarefa..."
+              value={formData.description}
               onChange={handleChange}
-              className="w-full px-3 py-2 bg-base-dark text-text-light rounded-lg border border-base-lighter focus:border-primary focus:outline-none transition-colors"
-            >
-              <option value="to-do">A Fazer</option>
-              <option value="in-progress">Em Progresso</option>
-              <option value="done">Concluído</option>
-            </select>
+            />
           </div>
 
-          {/* Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
@@ -161,9 +110,9 @@ export default function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProp
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {isLoading ? 'Criando...' : 'Criar Tarefa'}
+              {isLoading ? 'Criando...' : 'Criar'}
             </button>
           </div>
         </form>

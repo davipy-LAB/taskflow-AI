@@ -1,102 +1,88 @@
 // src/app/home/TaskCard.tsx
-
 "use client";
 
 import React, { useState } from 'react';
 import { TaskRead } from '../../types/tasks'; 
-import { Calendar, Trash2 } from 'lucide-react';
+import { Calendar, Trash2, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useTaskStore } from '../../stores/taskStores';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { WarningDelete } from './WarningDelete';
 
-interface TaskCardProps {
-  task: TaskRead;
-}
-
-export default function TaskCard({ task }: TaskCardProps) {
-  const { deleteTask } = useTaskStore();
+export default function TaskCard({ task }: { task: TaskRead }) {
+  const { deleteTask, updateTaskStatus } = useTaskStore();
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
-  // Integração com dnd-kit
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
-    id: `task-${task.id}`,
-  });
+  const x = useMotionValue(0);
+  const opacity = useTransform(x, [-150, 0, 150], [0.5, 1, 0.5]);
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    opacity: isDragging ? 0.5 : 1,
-  };
-  
-  const formattedDate = task.due_date 
-    ? new Date(task.due_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) 
-    : 'Sem data';
+  const handleDragEnd = (_: any, info: any) => {
+    const threshold = 100;
+    const offset = info.offset.x;
 
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Impede que o drag seja acionado
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    setIsDeleting(true);
-    try {
-      await deleteTask(task.id);
-      setIsDeleteModalOpen(false);
-    } catch (err) {
-      console.error('Erro ao deletar tarefa:', err);
-    } finally {
-      setIsDeleting(false);
+    if (offset > threshold) {
+      if (task.status === 'to-do') updateTaskStatus(task.id, 'in-progress');
+      else if (task.status === 'in-progress') updateTaskStatus(task.id, 'done');
+    } else if (offset < -threshold) {
+      if (task.status === 'done') updateTaskStatus(task.id, 'in-progress');
+      else if (task.status === 'in-progress') updateTaskStatus(task.id, 'to-do');
     }
   };
 
-  const statusColors = {
-    'to-do': 'border-primary text-primary',
-    'in-progress': 'border-contrast text-contrast',
-    'done': 'border-green-400 text-green-400',
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteTask(task.id);
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteModalOpen(false);
+    }
   };
 
   return (
     <>
-      <div 
-        ref={setNodeRef}
-        style={style}
-        className={`touch-action-none select-none p-3 sm:p-4 bg-base-darker rounded-lg shadow-md border-l-4 ${statusColors[task.status]} hover:shadow-lg transition-all duration-200 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0 group ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-        {...attributes}
-        {...listeners}
-      >
-        
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm sm:text-lg font-bold text-text-light line-clamp-3 break-words mb-1">
-            {task.title}
-          </h3>
-          
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2 text-xs sm:text-xs text-text-muted mt-2">
-            <div className="flex items-center space-x-1">
-              <Calendar className="w-3 h-3" />
-              <span>{formattedDate}</span>
-            </div>
-          </div>
+      <div className="relative overflow-hidden rounded-xl bg-base-dark border border-base-lighter group">
+        {/* Feedback visual de fundo para o Swipe */}
+        <div className="absolute inset-0 flex justify-between items-center px-6 pointer-events-none opacity-20">
+          <ArrowLeft size={20} className="text-white" />
+          <ArrowRight size={20} className="text-white" />
         </div>
 
-        {/* Botão de Delete */}
-        <button
-          onClick={handleDelete}
-          disabled={isDeleting}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="ml-0 sm:ml-2 p-1 text-red-400 hover:text-red-500 hover:bg-red-400/10 rounded transition-colors duration-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-          title="Deletar tarefa"
+        <motion.div
+          style={{ x, opacity }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          onDragEnd={handleDragEnd}
+          className="relative z-10 bg-base-dark p-4 border-l-4 border-primary cursor-grab active:cursor-grabbing"
         >
-          <Trash2 className="w-4 h-4" />
-        </button>
+          <div className="flex justify-between items-start gap-2">
+            <h3 className="text-text-light font-bold text-sm sm:text-base break-words flex-1">
+              {task.title}
+            </h3>
+            <button
+              onClick={() => setIsDeleteModalOpen(true)}
+              disabled={isDeleting}
+              className="p-1.5 text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+          
+          <div className="flex items-center gap-2 mt-3 text-xs text-text-muted">
+            <Calendar size={14} className="text-primary" />
+            <span>{task.due_date ? new Date(task.due_date).toLocaleDateString('pt-BR') : 'Sem prazo'}</span>
+          </div>
+
+          {/* Dica visual Mobile */}
+          <div className="mt-3 flex justify-center md:hidden">
+            <div className="w-10 h-1 bg-base-lighter rounded-full opacity-20" />
+          </div>
+        </motion.div>
       </div>
 
-      {/* Warning Delete Modal - Fora do drag listener */}
-      <WarningDelete
+      <WarningDelete 
         isOpen={isDeleteModalOpen}
-        title="Tem certeza que deseja deletar esta tarefa?"
-        message={`A tarefa "${task.title}" será deletada permanentemente.`}
-        onConfirm={handleConfirmDelete}
+        onConfirm={confirmDelete}
         onCancel={() => setIsDeleteModalOpen(false)}
         isLoading={isDeleting}
       />
