@@ -25,7 +25,6 @@ export const useCalendarStore = create<CalendarState>((set) => ({
   fetchAppointments: async () => {
     set({ isLoading: true });
     try {
-      // Usando o caminho relativo (o api.ts já deve ter o /api/v1)
       const response = await api.get('/calendar/');
       set({ appointments: response.data, isLoading: false });
     } catch (error) {
@@ -38,19 +37,20 @@ export const useCalendarStore = create<CalendarState>((set) => ({
     try {
       const payload = {
         title: data.title,
-        description: data.description || "", // FastAPI prefere string vazia a null/undefined se não for Optional
+        description: data.description || "", 
         date: format(data.date, 'yyyy-MM-dd'),
-        // 🚨 O SEGREDO DO 422: O tipo 'time' do Python exige HH:MM:SS
+        // Garante HH:MM:SS para evitar erro 422
         time: data.time.length === 5 ? `${data.time}:00` : data.time
       };
 
       const response = await api.post('/calendar/', payload);
       
+      // Adiciona na lista imediatamente
       set((state) => ({
         appointments: [...state.appointments, response.data]
       }));
     } catch (error: any) {
-      console.error("Erro 422 - Detalhes do Back-end:", error.response?.data?.detail);
+      console.error("Erro ao criar:", error.response?.data?.detail || error);
       throw error;
     }
   },
@@ -58,6 +58,7 @@ export const useCalendarStore = create<CalendarState>((set) => ({
   deleteAppointment: async (id: number) => {
     try {
       await api.delete(`/calendar/${id}`);
+      // Remove da lista local imediatamente (Otimista)
       set((state) => ({
         appointments: state.appointments.filter(app => app.id !== id)
       }));
