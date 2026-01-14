@@ -84,7 +84,7 @@ A ideia central é permitir que o usuário **organize, mova e acompanhe tarefas 
 - **TypeScript**
 - **React**
 - **Tailwind CSS**
-- **Drag and Drop API**
+- **Zustand **
 - Arquitetura baseada em componentes
 
 ---
