@@ -1,8 +1,9 @@
 // src/stores/authStore.ts
 
 import { create } from 'zustand';
-import api from '@/api/api'; // Seu cliente API configurado
+import api from '@/api/api'; 
 import { jwtDecode } from 'jwt-decode';
+import Cookies from 'js-cookie'; // <-- ADICIONADO
 
 interface UserData {
   id: number;
@@ -15,7 +16,6 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  // Ações
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   clearError: () => void;
@@ -32,20 +32,12 @@ const decodeToken = (token: string): UserData => {
   }
 };
 
-// 🚨 NOVA FUNÇÃO: Converte o objeto de erro (Pydantic) em uma string legível.
 const formatError = (errorDetail: any): string => {
     if (Array.isArray(errorDetail)) {
-        // Formato Pydantic: [{loc: [..., 'field_name'], msg: 'message'}, ...]
-        return errorDetail.map((err) => {
-            // Tenta obter o nome do campo (o último elemento do array 'loc')
-            const field = err.loc && err.loc.length > 1 ? err.loc[err.loc.length - 1] : 'Erro Geral';
-            return `${field}: ${err.msg}`;
-        }).join(' | ');
+        return errorDetail.map((err) => err.msg).join(', ');
     }
-    // Retorna a mensagem de erro simples, se for uma string, ou um erro genérico
-    return typeof errorDetail === 'string' ? errorDetail : 'Erro desconhecido. Tente novamente.';
+    return errorDetail;
 };
-
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
@@ -55,15 +47,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   error: null,
 
   initializeAuth: () => {
-    if (typeof window !== 'undefined') {
-      const storedToken = localStorage.getItem('token');
-      if (storedToken) {
-        try {
-            const user = decodeToken(storedToken);
-            set({ token: storedToken, user, isAuthenticated: true });
-        } catch (e) {
-            localStorage.removeItem('token');
-        }
+    // Tenta recuperar do localStorage ou do Cookie (Dupla camada de segurança)
+    const savedToken = localStorage.getItem('token') || Cookies.get('auth_token'); 
+    
+    if (savedToken) {
+      try {
+        const user = decodeToken(savedToken);
+        set({ token: savedToken, user, isAuthenticated: true });
+        // Sincroniza o cookie caso ele tenha sumido mas o localStorage ainda exista
+        Cookies.set('auth_token', savedToken, { expires: 7, sameSite: 'strict' });
+      } catch (e) {
+        get().logout();
       }
     }
   },
@@ -71,23 +65,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (email, password) => {
     set({ isLoading: true, error: null });
     try {
-      
-      // 🚨 CORREÇÃO: CRIA URLSearchParams (Form Data)
-      const data = new URLSearchParams();
-      data.append('username', email); // Envia o email na chave 'username'
-      data.append('password', password);
-      
-      // Envia o Form Data e o Content-Type: application/x-www-form-urlencoded
       const response = await api.post(
-        '/auth/login', 
-        data, 
-        // Headers são opcionais aqui, mas garantem que o Content-Type correto é enviado
+        '/auth/login',
+        new URLSearchParams({ username: email, password }),
         { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } } 
       ); 
       
       const { access_token } = response.data;
       
-      // ... (Restante da lógica de armazenamento e estado do token, que está correta)
+      // PERSISTÊNCIA EM COOKIE (Adicionado)
+      Cookies.set('auth_token', access_token, { 
+        expires: 7, // Expira em 7 dias
+        secure: process.env.NODE_ENV === 'production', // Só via HTTPS em produção
+        sameSite: 'strict' 
+      });
+
       localStorage.setItem('token', access_token);
       const user = decodeToken(access_token);
       
@@ -106,6 +98,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return false;
     }
   },
+
+  logout: () => {
+    localStorage.removeItem('token');
+    Cookies.remove('auth_token'); // <-- ADICIONADO
+    set({ token: null, user: null, isAuthenticated: false });
+  },
+
   register: async (data) => {
     set({ isLoading: true, error: null });
     try {
@@ -114,19 +113,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return true;
     } catch (err: any) {
         const detail = err.response?.data?.detail;
-        // 🚨 Usa a nova função de formatação
         const errorMessage = detail ? formatError(detail) : 'Falha ao registrar.';
         set({ error: errorMessage, isLoading: false });
         return false;
     }
   },
 
-  logout: () => {
-    localStorage.removeItem('token');
-    set({ token: null, user: null, isAuthenticated: false });
-  },
-
-  clearError: () => {
-    set({ error: null });
-  },
+  clearError: () => set({ error: null }),
 }));
