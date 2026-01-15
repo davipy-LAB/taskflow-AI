@@ -1,15 +1,10 @@
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 
-export default async function RootPage() { // 1. Adicione o 'async' aqui
-  const cookieStore = await cookies();     // 2. Adicione o 'await' aqui
+export default async function RootPage() {
+  const cookieStore = await cookies();
   const token = cookieStore.get('auth_token');
 
-  // Se já estiver logado, vai para a home
-  if (token) {
-    redirect('/home');
-  }
-
-  // Se não, vai para o login
+  if (token) redirect('/home');
   redirect('/login');
 }
