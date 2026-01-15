@@ -58,19 +58,24 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     }
   },
 
-  updateTaskStatus: async (taskId: number, status: TaskStatus) => {
-    try {
-      const response = await api.patch<TaskRead>(`/tasks/${taskId}`, { status });
-      // Atualiza a tarefa no estado
-      set((state) => ({
-        tasks: state.tasks.map((task) =>
-          task.id === taskId ? response.data : task
-        ),
-      }));
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || 'Falha ao atualizar tarefa.';
-      set({ error: errorMessage });
-      throw new Error(errorMessage);
-    }
-  },
+updateTaskStatus: async (taskId: number, status: TaskStatus) => {
+  // 1. ATUALIZAÇÃO OTIMISTA: Muda o estado local IMEDIATAMENTE
+  const previousTasks = get().tasks;
+  set((state) => ({
+    tasks: state.tasks.map((task) =>
+      task.id === taskId ? { ...task, status } : task
+    ),
+  }));
+
+  try {
+    // 2. Faz a chamada ao backend em background
+    await api.patch<TaskRead>(`/tasks/${taskId}`, { status });
+  } catch (err: any) {
+    // 3. REVERSÃO: Se a API falhar, volta ao estado anterior
+    set({ 
+      tasks: previousTasks,
+      error: 'Falha ao sincronizar com o servidor. A alteração foi revertida.' 
+    });
+  }
+},
 }));

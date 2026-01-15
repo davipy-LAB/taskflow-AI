@@ -6,7 +6,6 @@ import app.api.users as users
 import app.api.language as language
 import app.api.tasks as tasks
 from app.api import calendar
-from app.db.session import create_db_and_tables
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import init_db
 
@@ -16,27 +15,30 @@ async def lifespan(app: FastAPI):
     # Executa na inicialização
     await init_db() 
     yield
-    
+
 app = FastAPI(title="TaskFlow AI Backend", lifespan=lifespan)
 
 # Define as origens permitidas
 origins = [
     "http://localhost:3000",  # <--- ESSA É A PORTA DO SEU FRONTEND!
-    "http://127.0.0.1:3000",  # Para garantir compatibilidade com 127.0.0.1
+    "http://127.0.0.1:3000",  # Para garantir compatibilidade com localhost
+      'https://taskflow-backend-8d32.onrender.com', # Para garantir compatibilidade com 127.0.0.1
     # Adicione aqui o domínio de produção quando fizer o deploy
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],  # Permite todos os métodos (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"],  # Permite todos os cabeçalhos
 )
 
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables() 
+# --- ENDPOINT DE SAÚDE (Wake up check) ---
+@app.get("/api/v1/health")
+async def health_check():
+    """Endpoint leve para o frontend verificar se o backend acordou."""
+    return {"status": "online", "message": "Backend is awake and ready!"}
 
 # Inclui o router de autenticação
 app.include_router(auth.router, prefix="/api/v1/auth")

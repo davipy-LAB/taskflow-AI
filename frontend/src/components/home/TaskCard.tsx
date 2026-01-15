@@ -16,18 +16,26 @@ export default function TaskCard({ task }: { task: TaskRead }) {
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-150, 0, 150], [0.5, 1, 0.5]);
 
-  const handleDragEnd = (_: any, info: any) => {
-    const threshold = 100;
-    const offset = info.offset.x;
+  // src/app/home/TaskCard.tsx
 
-    if (offset > threshold) {
-      if (task.status === 'to-do') updateTaskStatus(task.id, 'in-progress');
-      else if (task.status === 'in-progress') updateTaskStatus(task.id, 'done');
-    } else if (offset < -threshold) {
-      if (task.status === 'done') updateTaskStatus(task.id, 'in-progress');
-      else if (task.status === 'in-progress') updateTaskStatus(task.id, 'to-do');
-    }
-  };
+const handleDragEnd = (_: any, info: any) => {
+  const threshold = 40; // Reduzido de 100 para 40 para ser muito mais responsivo
+  const velocityThreshold = 500; // Se arrastar rápido, troca de coluna independente da distância
+  
+  const offset = info.offset.x;
+  const velocity = info.velocity.x;
+
+  // Lógica de Swipe para a Direita (Avançar)
+  if (offset > threshold || velocity > velocityThreshold) {
+    if (task.status === 'to-do') updateTaskStatus(task.id, 'in-progress');
+    else if (task.status === 'in-progress') updateTaskStatus(task.id, 'done');
+  } 
+  // Lógica de Swipe para a Esquerda (Voltar)
+  else if (offset < -threshold || velocity < -velocityThreshold) {
+    if (task.status === 'done') updateTaskStatus(task.id, 'in-progress');
+    else if (task.status === 'in-progress') updateTaskStatus(task.id, 'to-do');
+  }
+};
 
   const confirmDelete = async () => {
     setIsDeleting(true);

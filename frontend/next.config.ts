@@ -5,6 +5,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Configuração do React Compiler
   reactCompiler: true,
+  output: 'export',
   
   // CONFIGURAÇÃO PARA DESATIVAR O COMPILADOR DE CSS PROBLEMÁTICO
   experimental: {
