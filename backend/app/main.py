@@ -23,7 +23,7 @@ origins = [
     "http://localhost:3000",  # <--- ESSA É A PORTA DO SEU FRONTEND!
     "http://127.0.0.1:3000",  # Para garantir compatibilidade com localhost
       'https://taskflow-backend-8d32.onrender.com/api/v1',
-       'https://taskflow-ai-lime.vercel.app' # Para garantir compatibilidade com 127.0.0.1
+       'https://taskflow-ai-lime.vercel.app/login' # Para garantir compatibilidade com 127.0.0.1
     # Adicione aqui o domínio de produção quando fizer o deploy
 ]
 
