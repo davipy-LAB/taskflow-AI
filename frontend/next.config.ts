@@ -7,13 +7,12 @@ const nextConfig: NextConfig = {
     useLightningcss: false,
   },
 
-  // ESTA É A PARTE MÁGICA:
+  // Proxy para o backend na mesma máquina/container
   async rewrites() {
     return [
       {
-        // Tudo que o front chamar para "/api/..."
+        // Tudo que o front chamar para "/api/..." é reescrito para o backend na porta 8000
         source: '/api/:path*',
-        // O Next.js desvia para o seu FastAPI na porta 8000
         destination: 'http://127.0.0.1:8000/api/:path*',
       },
     ];

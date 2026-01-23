@@ -4,13 +4,11 @@ import axios from 'axios';
 import { useAuthStore } from '@/stores/authStore'; 
 import Cookies from 'js-cookie';
 
-// Em desenvolvimento: aponta direto para o backend
-// Em produção: aponta para /api/v1 (será proxiado pelo Next.js)
+// Em desenvolvimento: aponta direto para o backend na porta 8000
+// Em produção: aponta para /api/v1 (será proxiado pelo Next.js para a porta 8000 no mesmo container)
 const API_URL = process.env.NODE_ENV === 'development' 
   ? 'http://127.0.0.1:8000/api/v1'
-  : (process.env.NEXT_PUBLIC_API_URL || '/api/v1');
-
-console.log('📡 API URL:', API_URL);
+  : '/api/v1';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -32,9 +30,6 @@ api.interceptors.request.use(
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('✅ Token enviado:', token.substring(0, 20) + '...');
-    } else {
-      console.log('⚠️ Sem token no header');
     }
     
     return config;
@@ -48,10 +43,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
-    console.log('❌ Erro na response:', status, error.response?.data);
     
     if (status === 401) {
-      console.log('🔄 Logout por 401');
       useAuthStore.getState().logout();
     }
     return Promise.reject(error);

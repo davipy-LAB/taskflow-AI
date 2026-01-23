@@ -1,6 +1,7 @@
 # Conteúdo de backend/app/main.py
 from fastapi import FastAPI
 from fastapi.concurrency import asynccontextmanager
+import os
 import app.api.auth as auth
 import app.api.users as users
 import app.api.language as language
@@ -24,8 +25,12 @@ origins = [
     "http://localhost:8000",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
-    'https://taskflow-ai-lime.vercel.app',
+    "https://taskflow-ai-r16p.onrender.com",  # URL de produção no Render
 ]
+
+# Adicionar origem de produção se definida
+if os.getenv("FRONTEND_URL"):
+    origins.append(os.getenv("FRONTEND_URL"))
 
 app.add_middleware(
     CORSMiddleware,
