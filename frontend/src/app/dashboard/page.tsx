@@ -2,24 +2,37 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/Layout/MainLayout';
 import Sidebar from '@/components/Layout/Sidebar';
 import FlowSection from '@/components/home/FlowSection';
 import CalendarSection from '@/components/home/CalendarSection';
 import LanguageSection from '@/components/home/LanguageSection';
-// 🚨 NOVO: Importa o useAuthStore para acessar a função de logout
 import { useAuthStore } from '@/stores/authStore'; 
 
 export default function DashboardPage() {
   
+  const router = useRouter();
   const [activeSection, setActiveSection] = useState('flow');
-  // 🚨 NOVO: Obtém a função de logout do store
-  const { logout } = useAuthStore(); 
+  const { logout, isAuthenticated } = useAuthStore(); 
+  
+  // Proteção: Se não estiver autenticado, redireciona para login
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, router]);
+  
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-base-dark text-white">
+        Carregando...
+      </div>
+    );
+  }
   
   const renderContent = () => {
-    // ... (função de renderização) ...
-    // Note: O corpo desta função não muda
     switch (activeSection) {
       case 'flow':
         return <FlowSection />;

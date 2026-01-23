@@ -7,7 +7,7 @@ import app.api.language as language
 import app.api.tasks as tasks
 from app.api import calendar
 from fastapi.middleware.cors import CORSMiddleware
-from app.config import init_db
+from app.db.session import init_db
 
 
 @asynccontextmanager
@@ -20,17 +20,19 @@ app = FastAPI(title="TaskFlow AI Backend", lifespan=lifespan)
 
 # Define as origens permitidas
 origins = [
-    "http://localhost:3000",  # <--- ESSA É A PORTA DO SEU FRONTEND!,  # Para garantir compatibilidade com localhost
-    'https://taskflow-ai-lime.vercel.app', # Para garantir compatibilidade com 127.0.0.1
-    # Adicione aqui o domínio de produção quando fizer o deploy
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
+    'https://taskflow-ai-lime.vercel.app',
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Permite todos os métodos (GET, POST, PUT, DELETE, etc.)
-    allow_headers=["*"],  # Permite todos os cabeçalhos
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # --- ENDPOINT DE SAÚDE (Wake up check) ---

@@ -61,11 +61,12 @@ def decode_access_token(token: str) -> TokenPayload:
         # O sub (subject) é o email do usuário
         sub: str = payload.get("sub")
         if sub is None:
-            raise jwt.PyJWTError("Token sem subject (sub) válido.")
+            raise ValueError("Token sem subject (sub) válido.")
         
         # Retorna o payload decodificado
         return TokenPayload(sub=sub)
     
-    except jwt.PyJWTError:
+    except (jwt.PyJWTError, ValueError) as e:
         # Captura qualquer erro de JWT (expirado, inválido, malformado)
-        return None
+        print(f"❌ Erro ao decodificar token: {e}")
+        raise ValueError(f"Token inválido: {str(e)}")

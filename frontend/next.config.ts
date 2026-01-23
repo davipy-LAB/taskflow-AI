@@ -1,14 +1,22 @@
-// next.config.ts
-
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Configuração do React Compiler
   reactCompiler: true,
   
-  // CONFIGURAÇÃO PARA DESATIVAR O COMPILADOR DE CSS PROBLEMÁTICO
   experimental: {
-    useLightningcss: false, // <-- Adicione esta linha
+    useLightningcss: false,
+  },
+
+  // ESTA É A PARTE MÁGICA:
+  async rewrites() {
+    return [
+      {
+        // Tudo que o front chamar para "/api/..."
+        source: '/api/:path*',
+        // O Next.js desvia para o seu FastAPI na porta 8000
+        destination: 'http://127.0.0.1:8000/api/:path*',
+      },
+    ];
   },
 };
 

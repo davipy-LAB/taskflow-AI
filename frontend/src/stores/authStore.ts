@@ -48,7 +48,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   initializeAuth: () => {
     // Tenta recuperar do localStorage ou do Cookie (Dupla camada de segurança)
-    const savedToken = localStorage.getItem('token') || Cookies.get('auth_token'); 
+    const savedToken = localStorage.getItem('token') || Cookies.get('auth_token') || undefined; 
     
     if (savedToken) {
       try {

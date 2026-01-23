@@ -19,18 +19,21 @@ async def get_current_user(
     session: AsyncSession = Depends(get_session),
     token: str = Depends(reusable_oauth2)
 ) -> User:
+    print(f"🔍 Token recebido: {token[:30]}..." if token else "❌ Nenhum token!")
     try:
         payload: TokenPayload = decode_access_token(token)
+        print(f"✅ Token decodificado: {payload}")
         if not payload or not payload.sub:
              raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Token inválido ou expirado.",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-    except Exception:
+    except (ValueError, Exception) as e:
+        print(f"❌ Erro na autenticação: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Não foi possível validar as credenciais.",
+            detail=f"Não foi possível validar as credenciais: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
