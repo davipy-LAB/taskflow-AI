@@ -10,7 +10,7 @@ export default async function RootPage() {
 
   // Se já estiver logado, vai direto para o dashboard
   if (token) {
-    redirect('/home');
+    redirect('/dashboard');
   }
 
   // Se não, vai para o login

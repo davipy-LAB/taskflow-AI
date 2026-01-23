@@ -20,9 +20,8 @@ app = FastAPI(title="TaskFlow AI Backend", lifespan=lifespan)
 
 # Define as origens permitidas
 origins = [
-    "http://localhost:3000",  # <--- ESSA É A PORTA DO SEU FRONTEND!
-    "http://127.0.0.1:3000",  # Para garantir compatibilidade com localhost
-    'https://taskflow-ai-lime.vercel.app' # Para garantir compatibilidade com 127.0.0.1
+    "http://localhost:3000",  # <--- ESSA É A PORTA DO SEU FRONTEND!,  # Para garantir compatibilidade com localhost
+    'https://taskflow-ai-lime.vercel.app', # Para garantir compatibilidade com 127.0.0.1
     # Adicione aqui o domínio de produção quando fizer o deploy
 ]
 
