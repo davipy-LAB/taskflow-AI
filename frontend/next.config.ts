@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
       {
         // Tudo que o front chamar para "/api/..." é reescrito para o backend na porta 8000
         source: '/api/:path*',
-        destination: 'http://127.0.0.1:8000/api/:path*',
+        destination: 'http://localhost:8000/api/:path*',
       },
     ];
   },
