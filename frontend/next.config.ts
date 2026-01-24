@@ -7,13 +7,16 @@ const nextConfig: NextConfig = {
     useLightningcss: false,
   },
 
-  // Proxy para o backend na mesma máquina/container
+  // Proxy para o backend
   async rewrites() {
     return [
       {
-        // Tudo que o front chamar para "/api/..." é reescrito para o backend na porta 8000
+        // Em produção: use a URL do backend deployado
+        // Em desenvolvimento: use localhost
         source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*',
+        destination: process.env.BACKEND_URL 
+          ? `${process.env.BACKEND_URL}/api/:path*`
+          : 'http://localhost:8000/api/:path*',
       },
     ];
   },
