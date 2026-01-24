@@ -7,16 +7,18 @@ const nextConfig: NextConfig = {
     useLightningcss: false,
   },
 
-  // Proxy para o backend
+  // Proxy para o backend APENAS em desenvolvimento
   async rewrites() {
+    // Em produção (Render), não precisa de rewrite, o frontend acessa direto a URL
+    if (process.env.NODE_ENV === "production") {
+      return [];
+    }
+
     return [
       {
-        // Em produção: use a URL do backend deployado
-        // Em desenvolvimento: use localhost
+        // Em desenvolvimento: usa localhost
         source: '/api/:path*',
-        destination: process.env.BACKEND_URL 
-          ? `${process.env.BACKEND_URL}/api/:path*`
-          : 'http://localhost:8000/api/:path*',
+        destination: 'http://localhost:8000/api/:path*',
       },
     ];
   },
