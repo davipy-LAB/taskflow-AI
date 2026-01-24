@@ -6,9 +6,10 @@ import Cookies from 'js-cookie';
 
 // Em desenvolvimento: aponta direto para o backend na porta 8000
 // Em produção: aponta para /api/v1 (será proxiado pelo Next.js para a porta 8000 no mesmo container)
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://127.0.0.1:8000/api/v1'
-  : '/api/v1';
+const isProduction = process.env.NODE_ENV === 'production' || typeof window === 'undefined' || process.env.VERCEL_ENV === 'production';
+const API_URL = isProduction
+  ? '/api/v1'
+  : 'http://127.0.0.1:8000/api/v1';
 
 const api = axios.create({
   baseURL: API_URL,
