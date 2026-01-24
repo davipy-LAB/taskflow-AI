@@ -4,12 +4,13 @@ import axios from 'axios';
 import { useAuthStore } from '@/stores/authStore'; 
 import Cookies from 'js-cookie';
 
-// Em desenvolvimento: aponta direto para o backend na porta 8000
-// Em produção: aponta para /api/v1 (será proxiado pelo Next.js para a porta 8000 no mesmo container)
-const isProduction = process.env.NODE_ENV === 'production' || typeof window === 'undefined' || process.env.VERCEL_ENV === 'production';
-const API_URL = isProduction
-  ? '/api/v1'
-  : 'http://127.0.0.1:8000/api/v1';
+// Em produção (Render): sempre usa /api/v1 (rewrite do Next.js)
+// Em desenvolvimento: usa http://127.0.0.1:8000/api/v1 (acesso direto)
+// Detecta produção verificando se estamos no Render (hostname !== localhost)
+const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const API_URL = isLocalhost
+  ? 'http://127.0.0.1:8000/api/v1'
+  : '/api/v1';
 
 const api = axios.create({
   baseURL: API_URL,
