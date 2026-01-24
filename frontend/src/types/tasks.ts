@@ -1,4 +1,4 @@
-// src/types/task.ts
+// src/types/tasks.ts
 
 export type TaskStatus = 'to-do' | 'in-progress' | 'done';
 
@@ -7,7 +7,8 @@ export interface TaskRead {
   title: string;
   description: string | null;
   status: TaskStatus;
-  due_date: string | null; 
+  due_date: string | null;
+  created_at: string;
 }
 
 export interface TaskWrite {

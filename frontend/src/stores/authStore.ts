@@ -57,6 +57,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Sincroniza o cookie caso ele tenha sumido mas o localStorage ainda exista
         Cookies.set('auth_token', savedToken, { expires: 7, sameSite: 'strict' });
       } catch (e) {
+        console.error('Erro ao decodificar token salvo:', e);
         get().logout();
       }
     }

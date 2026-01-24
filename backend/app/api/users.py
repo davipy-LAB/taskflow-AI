@@ -1,6 +1,6 @@
-# backend/app/api/user.py
+# backend/app/api/users.py
 from fastapi import Depends, HTTPException, status
-from sqlmodel import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_session
 from app.core.security import get_password_hash, verify_password
 from app.schemas.user_schema import UserPasswordChange
@@ -17,7 +17,7 @@ router = APIRouter()
 
 # Rota protegida que usa a dependência CurrentUser
 @router.get("/me", response_model=UserRead, tags=["users"])
-def read_current_user(current_user: CurrentUser):
+async def read_current_user(current_user: CurrentUser):
     """
     Obtém os dados do usuário atualmente logado.
     Requer um Token JWT válido.
@@ -25,10 +25,10 @@ def read_current_user(current_user: CurrentUser):
     return current_user
 
 @router.patch("/password", tags=["users"])
-def change_password(
+async def change_password(
     password_data: UserPasswordChange,
     current_user: CurrentUser, # Garante que o usuário esteja logado
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ):
     """
     Permite ao usuário logado mudar sua senha.
@@ -56,17 +56,17 @@ def change_password(
     current_user.hashed_password = new_hashed_password
     
     session.add(current_user)
-    session.commit()
-    session.refresh(current_user)
+    await session.commit()
+    await session.refresh(current_user)
     
     return {"message": "Senha atualizada com sucesso."}
 
 @router.post("/me/enroll/{language_id}", response_model=UserLanguageRead, tags=["users"])
 
-def enroll_in_language(
+async def enroll_in_language(
     language_id: int,
     current_user: CurrentUser, # Usuário logado
-    session: Session = Depends(get_session),
+    session: AsyncSession = Depends(get_session),
 ):
     """
     Permite ao usuário logado se matricular em um idioma específico.
@@ -74,7 +74,10 @@ def enroll_in_language(
     """
     
     # 1. Verificar se o idioma existe
-    language = session.get(Language, language_id)
+    statement = select(Language).where(Language.id == language_id)
+    result = await session.execute(statement)
+    language = result.scalar_one_or_none()
+    
     if not language:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -82,12 +85,12 @@ def enroll_in_language(
         )
 
     # 2. Verificar se o usuário já está matriculado
-    enrollment = session.exec(
-        select(UserLanguage).where(
-            UserLanguage.user_id == current_user.id,
-            UserLanguage.language_id == language_id
-        )
-    ).first()
+    statement = select(UserLanguage).where(
+        UserLanguage.user_id == current_user.id,
+        UserLanguage.language_id == language_id
+    )
+    result = await session.execute(statement)
+    enrollment = result.scalar_one_or_none()
     
     if enrollment:
         raise HTTPException(
@@ -103,8 +106,8 @@ def enroll_in_language(
     )
     
     session.add(new_enrollment)
-    session.commit()
-    session.refresh(new_enrollment)
+    await session.commit()
+    await session.refresh(new_enrollment)
     
     return new_enrollment
 

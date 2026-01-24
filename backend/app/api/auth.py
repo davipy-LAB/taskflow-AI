@@ -58,11 +58,3 @@ async def login_for_access_token(
     
     access_token = create_access_token(subject=user.email)
     return Token(access_token=access_token, token_type="bearer")
-
-@router.get("/users/me", response_model=UserRead)
-def read_users_me(current_user: CurrentUser):
-    """
-    Retorna os dados do usuário autenticado (UserRead).
-    Usada pelo frontend para validar o token e popular o estado global.
-    """
-    return current_user

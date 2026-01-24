@@ -40,19 +40,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- ENDPOINT DE SAÚDE (Wake up check) ---
+# --- ENDPOINTS DE SAÚDE ---
 @app.get("/api/v1/health")
 async def health_check():
     """Endpoint leve para o frontend verificar se o backend acordou."""
     return {"status": "online", "message": "Backend is awake and ready!"}
 
+@app.get("/")
+async def read_root():
+    """Root endpoint"""
+    return {"Hello": "TaskFlow AI API is running!"}
+
+@app.head("/")
+async def head_root():
+    """HEAD request para health checks do Render"""
+    return None
+
 # Inclui o router de autenticação
 app.include_router(auth.router, prefix="/api/v1/auth")
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "TaskFlow AI API is running!"}
 
 # users.router defines paths like '/me' so we add '/api/v1/users' as prefix
 app.include_router(users.router, prefix="/api/v1/users")
