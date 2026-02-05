@@ -17,6 +17,15 @@ const isDev = typeof window !== 'undefined' &&
 
 const API_URL = isDev ? 'http://127.0.0.1:8000/api/v1' : '/api/v1';
 
+// DEBUG: Log para confirmar qual URL está sendo usada
+if (typeof window !== 'undefined') {
+  console.log('🔍 API Detection:', {
+    hostname: window.location.hostname,
+    isDev,
+    API_URL,
+  });
+}
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {
