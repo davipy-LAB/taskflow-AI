@@ -11,7 +11,8 @@ from app.core.security import decode_access_token
 from app.models.token import TokenPayload 
 
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl="/api/v1/auth/login"
+    tokenUrl="/api/v1/auth/login",
+    auto_error=False  # Não redireciona automaticamente, deixa a gente controlar o erro
 )
 
 # 1. Transformado em 'async def' para suportar o motor assíncrono
@@ -19,6 +20,14 @@ async def get_current_user(
     session: AsyncSession = Depends(get_session),
     token: str = Depends(reusable_oauth2)
 ) -> User:
+    # Verifica se token foi fornecido
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token de autenticação ausente.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     print(f"🔍 Token recebido: {token[:30]}..." if token else "❌ Nenhum token!")
     try:
         payload: TokenPayload = decode_access_token(token)

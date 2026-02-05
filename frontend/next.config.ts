@@ -9,12 +9,14 @@ const nextConfig: NextConfig = {
 
   // Proxy para o backend (funciona em dev E em produção)
   async rewrites() {
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+    
     return [
       {
         // Em desenvolvimento: usa localhost:8000
-        // Em produção (Render): usa localhost:8000 (backend roda internamente)
+        // Em produção (Render): usa BACKEND_URL env var ou localhost:8000
         source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
       },
     ];
   },
