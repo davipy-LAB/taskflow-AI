@@ -12,7 +12,6 @@ interface TaskState {
   deleteTask: (taskId: number) => Promise<void>;
   createTask: (task: TaskWrite) => Promise<void>;
   updateTaskStatus: (taskId: number, status: TaskStatus) => Promise<void>;
-  // Adicione outras ações (addTask, updateTaskStatus, etc.)
 }
 
 export const useTaskStore = create<TaskState>((set, get) => ({
@@ -23,18 +22,19 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   fetchTasks: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await api.get<TaskRead[]>('/tasks'); 
+      // CORREÇÃO: Adicionada a barra final '/'
+      const response = await api.get<TaskRead[]>('/tasks/'); 
       set({ tasks: response.data, isLoading: false });
     } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || 'Falha ao carregar tarefas. Verifique a API.';
+      const errorMessage = err.response?.data?.detail || 'Falha ao carregar tarefas.';
       set({ error: errorMessage, isLoading: false });
     }
   },
 
   deleteTask: async (taskId: number) => {
     try {
-      await api.delete(`/tasks/${taskId}`);
-      // Remove a tarefa do estado após sucesso
+      // CORREÇÃO: Adicionada a barra final '/' antes do ID
+      await api.delete(`/tasks/${taskId}/`);
       set((state) => ({
         tasks: state.tasks.filter((task) => task.id !== taskId),
       }));
@@ -44,10 +44,11 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       throw new Error(errorMessage);
     }
   },
+
   createTask: async (task: TaskWrite) => {
     try {
-      const response = await api.post<TaskRead>('/tasks', task);
-      // Adiciona a nova tarefa ao estado
+      // CORREÇÃO: Adicionada a barra final '/'
+      const response = await api.post<TaskRead>('/tasks/', task);
       set((state) => ({
         tasks: [...state.tasks, response.data],
       }));
@@ -58,24 +59,22 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     }
   },
 
-updateTaskStatus: async (taskId: number, status: TaskStatus) => {
-  // 1. ATUALIZAÇÃO OTIMISTA: Muda o estado local IMEDIATAMENTE
-  const previousTasks = get().tasks;
-  set((state) => ({
-    tasks: state.tasks.map((task) =>
-      task.id === taskId ? { ...task, status } : task
-    ),
-  }));
+  updateTaskStatus: async (taskId: number, status: TaskStatus) => {
+    const previousTasks = get().tasks;
+    set((state) => ({
+      tasks: state.tasks.map((task) =>
+        task.id === taskId ? { ...task, status } : task
+      ),
+    }));
 
-  try {
-    // 2. Faz a chamada ao backend em background
-    await api.patch<TaskRead>(`/tasks/${taskId}`, { status });
-  } catch (err: any) {
-    // 3. REVERSÃO: Se a API falhar, volta ao estado anterior
-    set({ 
-      tasks: previousTasks,
-      error: 'Falha ao sincronizar com o servidor. A alteração foi revertida.' 
-    });
-  }
-},
+    try {
+      // CORREÇÃO: Adicionada a barra final '/' antes do ID
+      await api.patch<TaskRead>(`/tasks/${taskId}/`, { status });
+    } catch (err: any) {
+      set({ 
+        tasks: previousTasks,
+        error: 'Falha ao sincronizar com o servidor.' 
+      });
+    }
+  },
 }));
