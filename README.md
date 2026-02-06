@@ -1,6 +1,6 @@
 # 🚀 TaskFlow AI
 
-> **Status:** v1.0.5 Beta
+> **Status:** v3.8 Beta
 > **Autor:** Davi Dias de Souza  
 > **Projeto Fullstack autoral**
 
@@ -51,6 +51,8 @@ A ideia central é permitir que o usuário **organize, mova e acompanhe tarefas 
   - Tablet
 - UX otimizada para **touch**
 - Limite visual inteligente para textos longos
+
+https://github.com/user-attachments/assets/d8f5f056-c144-4f50-bb14-5db33a24c831
 
 ---
 
