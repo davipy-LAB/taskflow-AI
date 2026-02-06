@@ -1,6 +1,6 @@
 # 🚀 TaskFlow AI
 
-> **Status:** v3.8 Beta
+> **Status:** v3.8 Beta  
 > **Autor:** Davi Dias de Souza  
 > **Projeto Fullstack autoral**
 
@@ -15,102 +15,95 @@ Este projeto não nasceu como exercício acadêmico, mas como uma **solução pr
 
 ## 🧠 Motivação
 
-Muitos gerenciadores de tarefas são:
-- complexos demais
-- pouco intuitivos
-- ou visualmente poluídos
-
-O TaskFlow AI foi criado com foco em:
-- **UX simples**
-- **fluxo visual claro**
-- **interação rápida**
-- **responsividade total**
-
-A ideia central é permitir que o usuário **organize, mova e acompanhe tarefas de forma natural**, sem fricção.
+Muitos gerenciadores de tarefas são complexos demais, pouco intuitivos ou visualmente poluídos. O TaskFlow AI foi criado com foco em:
+- **UX simples** e intuitiva.
+- **Fluxo visual claro** para tomada de decisão.
+- **Interação rápida** com feedback instantâneo.
+- **Responsividade total** para uso em qualquer lugar.
 
 ---
 
 ## ✨ Funcionalidades Atuais (Beta)
 
 ### 🔐 Autenticação
-- Login e registro de usuários
-- Autenticação via **JWT + Refresh Token**
-- Acesso à aplicação apenas para usuários autenticados
-
----
+- Login e registro de usuários.
+- Autenticação via **JWT (JSON Web Token)** com sistema de proteção de rotas.
+- Persistência de sessão segura.
 
 ### 📋 Kanban (Flow)
-- Sistema de **drag and drop**
-- Estados:
-  - A Fazer
-  - Em Progresso
-  - Concluído
-- Totalmente funcional em:
-  - Desktop
-  - Mobile
-  - Tablet
-- UX otimizada para **touch**
-- Limite visual inteligente para textos longos
+- Sistema de **Drag and Drop** funcional.
+- Estados de tarefas: *A Fazer*, *Em Progresso* e *Concluído*.
+- UX otimizada para dispositivos **Touch** (Mobile/Tablet).
 
 https://github.com/user-attachments/assets/d8f5f056-c144-4f50-bb14-5db33a24c831
 
----
-
 ### 🗓️ Calendário
-- Calendário integrado ao backend
-- Tarefas com data de vencimento
-- Organização visual do fluxo ao longo do tempo
-- CRUD completo
+- Calendário integrado ao backend para visualização temporal.
+- Gerenciamento de prazos e datas de vencimento.
+- CRUD completo de eventos e compromissos.
 
----
-
-### 🧩 CRUD Completo
-- Criar tarefas
-- Editar tarefas
-- Mover tarefas entre estados com swap feature
-- Excluir tarefas
-- Feedback visual e mensagens personalizadas (UX)
-
----
+https://github.com/user-attachments/assets/585b12b0-935a-43ef-b1c9-51235cef2112
 
 ### 📱 Responsividade
-- Interface adaptada para todos os tamanhos de tela
-- Sidebar dinâmica no desktop
-- Navegação por ícones no mobile
-- Nenhuma funcionalidade perdida entre dispositivos
+- Interface adaptativa (Mobile First).
+- Sidebar dinâmica no Desktop e navegação simplificada no Mobile.
 
 ---
 
 ## 🛠️ Stack Tecnológica
 
-### Frontend
-- **Next.js**
-- **TypeScript**
-- **React**
-- **Tailwind CSS**
-- **Zustand**
-- Arquitetura baseada em componentes
+| Frontend | Backend | Banco de Dados |
+| :--- | :--- | :--- |
+| **Next.js** (App Router) | **Python / FastAPI** | **PostgreSQL** |
+| **TypeScript** | **SQLModel / SQLAlchemy** | **Alembic** (Migrações) |
+| **Tailwind CSS** | **Pydantic** (Validação) | |
+| **Zustand** (State Mgmt) | **JWT Authentication** | |
 
 ---
 
-### Backend
-- **Python**
-- **FastAPI**
-- **SQLAlchemy / SQLModel**
-- **Pydantic**
-- **JWT Authentication**
+## 🚀 Como Rodar Localmente
+
+O projeto é dividido em duas partes principais: `frontend` e `backend`. Você precisará de dois terminais abertos simultaneamente.
+
+### 1️⃣ Pré-requisitos
+- Python 3.10+
+- Node.js 18+
+- PostgreSQL instalado e rodando.
+
+### 2️⃣ Configuração do Backend
+# Entre na pasta do backend
+cd backend
+
+# Crie e ative um ambiente virtual
+python -m venv venv
+# Windows: venv\Scripts\activate | Linux/Mac: source venv/bin/activate
+
+# Instale as dependências
+pip install -r requirements.txt
+
+# Crie um arquivo .env na pasta /backend com:
+# DATABASE_URL="postgresql://seu_usuario:sua_senha@localhost:5432/taskflowdb"
+# SECRET_KEY="sua_chave_secreta_aleatoria"
+
+# Inicie o servidor
+uvicorn app.main:app --reload --port 8000
+
+# Em outro terminal, entre na pasta do frontend
+cd frontend
+
+# Instale as dependências
+npm install
+
+# Inicie o servidor de desenvolvimento
+npm run dev
+
+# Acesse localhost:3000/login
 
 ---
 
-### Banco de Dados
-- **PostgreSQL**
-
----
-
-### Infra / Dev
+### Dev
 - API modular e escalável
 - Separação clara de responsabilidades
-- Projeto com deploy em cloud
 
 ---
 
@@ -132,21 +125,13 @@ O TaskFlow AI será integrado ao **ChatBoy**, um assistente virtual autoral cria
 
 ### 🔹 Próximos passos
 - Integração completa do ChatBoy
-- Deploy público da versão Beta
 - Melhorias de performance
 - Refinamento do calendário
 
 ### 🔹 Pós-Beta
-- Sistema SaaS
 - Segurança avançada (2FA)
 - Melhorias de escalabilidade
 - Novas ferramentas de produtividade
-
----
-
-## 🎥 Demo
-
-📹 Vídeo demo disponível (em breve público)
 
 ---
 
