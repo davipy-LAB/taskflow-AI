@@ -31,7 +31,7 @@ Muitos gerenciadores de tarefas são complexos demais, pouco intuitivos ou visua
 - Persistência de sessão segura.
 
 ### 📋 Kanban (Flow)
-- Sistema de **Drag and Drop** funcional.
+- Sistema de **Swipe** funcional.
 - Estados de tarefas: *A Fazer*, *Em Progresso* e *Concluído*.
 - UX otimizada para dispositivos **Touch** (Mobile/Tablet).
 
